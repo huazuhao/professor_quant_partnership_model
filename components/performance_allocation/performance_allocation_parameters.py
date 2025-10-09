@@ -16,7 +16,7 @@ class PerformanceAllocationParameters:
     # ============================================
     # FUND INITIALIZATION
     # ============================================
-    FUND_INITIAL_AUM = 10.0  # $10M initial fund size (millions)
+    FUND_INITIAL_AUM = 20.0  # $20M initial fund size (millions)
 
     # ============================================
     # MANAGEMENT FEE PARAMETERS
