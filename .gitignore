@@ -8,9 +8,7 @@ venv/
 env/
 ENV/
 
-# Simulation outputs
-*.png
-*.log
+# Simulation outputs (only ignore simulation_runs folder)
 simulation_runs/
 
 # IDE
