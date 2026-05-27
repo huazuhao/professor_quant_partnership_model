@@ -98,7 +98,9 @@ def add_box(ax, x, y, w, h, title, body="", fill="#ffffff", metric=None):
     add_text(ax, x + 0.025, y + h - 0.028, title, size=13, weight="bold")
     if metric:
         add_text(ax, x + 0.025, y + h - 0.075, metric, size=20, weight="bold")
-        add_text(ax, x + 0.14, y + h - 0.072, body, size=10.5, color=COLORS["muted"], width=32)
+        body_x = x + min(0.16, w * 0.42)
+        wrap_width = max(10, int((x + w - body_x - 0.03) * 70))
+        add_text(ax, body_x, y + h - 0.072, body, size=9.8, color=COLORS["muted"], width=wrap_width)
     elif body:
         wrap_width = max(14, int(w * 95))
         add_text(ax, x + 0.025, y + h - 0.07, body, size=10.5, color=COLORS["muted"], width=wrap_width)
@@ -246,9 +248,9 @@ def add_accounting_page(pdf):
     )
     add_arrow(ax, (0.50, 0.275), (0.28, 0.17), rad=-0.12)
     add_arrow(ax, (0.50, 0.275), (0.72, 0.17), rad=0.12)
-    add_box(ax, 0.08, 0.07, 0.36, 0.10, "Strategy professors", "Paid by strategy ownership weights", COLORS["blue"], metric="50%")
-    add_box(ax, 0.56, 0.07, 0.36, 0.10, "Safety net", "Guarantees up to $1M support", COLORS["red"], metric="50%")
-    add_text(ax, 0.08, 0.025, "Eligible profits after HWM: 80% fund/investors, 10% strategy professors, 10% safety net.", size=10.5, color=COLORS["muted"])
+    add_box(ax, 0.08, 0.045, 0.36, 0.125, "Strategy professors", "Strategy ownership payments", COLORS["blue"], metric="50%")
+    add_box(ax, 0.56, 0.045, 0.36, 0.125, "Safety net", "Up to $1M cumulative support", COLORS["red"], metric="50%")
+    add_text(ax, 0.08, 0.018, "Eligible profits after HWM: 80% fund/investors, 10% strategy professors, 10% safety net.", size=10.5, color=COLORS["muted"])
     pdf.savefig(fig, bbox_inches="tight")
     plt.close(fig)
 
