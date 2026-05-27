@@ -1,10 +1,12 @@
 # Professor Quant Partnership Model
 
-This repository simulates a new funding model for university research labs.
+This repository studies a new research-lab funding model made possible by the rapid improvement of LLM coding.
 
-Six months ago, this was not practically scalable. Universities already had the right research talent, and hedge funds already relied on the same foundations: mathematics, statistics, optimization, computational modeling, simulation, and other STEM disciplines. The bottleneck was implementation. Turning ideas into robust backtests, diagnostics, production code, and monitoring systems took too much engineering time.
+University labs in mathematics, statistics, optimization, simulation, computational modeling, and related STEM fields already have the talent systematic hedge funds rely on. The old bottleneck was implementation: turning a research idea into clean data, backtests, diagnostics, risk controls, deployment code, and monitoring usually took more engineering time than a short sabbatical or research leave could support.
 
-Rapid improvement in LLM coding changes that constraint. A professor on sabbatical or a short 6-12 month research leave can now spend most of the time on hypothesis generation, modeling, empirical validation, and iteration, while LLM-assisted development reduces the software bottleneck. That makes a new alternative funding channel possible for the first time at scale: professors help invent or improve systematic trading strategies, the fund trades validated strategies, and part of the profits funds the contributing research labs.
+LLM-assisted coding changes that. A 6-12 month sabbatical or one-year leave can now be enough for professors to help invent or improve systematic trading strategies. If validated strategies are traded, part of the profits can fund the contributing labs over the following years.
+
+In the current simulation, this loop can start with $20M of initial capital and grow into a $1B+ fund. The median 10-year investor outcome is about 3x capital, roughly 140-150 professors or labs participate, and five-year lab compensation is above $1M at the median.
 
 ![Professor-led quant research funding loop](assets/funding_loop.svg)
 
