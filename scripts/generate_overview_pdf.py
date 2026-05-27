@@ -129,6 +129,14 @@ def add_title_page(pdf):
         size=13.5,
         color=COLORS["muted"],
     )
+    add_text(
+        ax,
+        0.08,
+        0.865,
+        "Repository: https://github.com/huazuhao/professor_quant_partnership_model",
+        size=10.5,
+        color=COLORS["muted"],
+    )
 
     readme_intro = [
         (
@@ -153,7 +161,7 @@ def add_title_page(pdf):
             "or labs participate, and five-year lab compensation is above $1M at the median."
         ),
     ]
-    y = 0.83
+    y = 0.815
     for idx, paragraph in enumerate(readme_intro):
         add_text(
             ax,
