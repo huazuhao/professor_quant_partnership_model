@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650" role="img" aria-labelledby="title desc">
+  <title id="title">Professor-led quant research funding loop</title>
+  <desc id="desc">A one-minute diagram showing how LLM coding progress enables professors to create or improve trading strategies, which can fund university labs through direct payouts and a safety net.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto">
+      <path d="M2,2 L12,7 L2,12" fill="none" stroke="#1f2937" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <filter id="paper-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#111827" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .bg { fill: #fbfcfd; }
+      .title { font: 700 31px Arial, Helvetica, sans-serif; fill: #111827; }
+      .subtitle { font: 400 17px Arial, Helvetica, sans-serif; fill: #374151; }
+      .box { fill: #ffffff; stroke: #1f2937; stroke-width: 2.4; filter: url(#paper-shadow); }
+      .box-a { fill: #e8f2ff; }
+      .box-b { fill: #eaf8ef; }
+      .box-c { fill: #fff4d7; }
+      .box-d { fill: #f1efff; }
+      .box-e { fill: #ffecec; }
+      .label { font: 700 21px Arial, Helvetica, sans-serif; fill: #111827; }
+      .body { font: 400 15px Arial, Helvetica, sans-serif; fill: #374151; }
+      .note { font: 700 16px Arial, Helvetica, sans-serif; fill: #0f766e; }
+      .arrow { fill: none; stroke: #1f2937; stroke-width: 2.7; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#arrow); }
+      .sketch { fill: none; stroke: #6b7280; stroke-width: 1.4; stroke-linecap: round; opacity: 0.75; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1200" height="650"/>
+
+  <text class="title" x="60" y="62">A new lab-funding loop opened by LLM coding</text>
+  <text class="subtitle" x="60" y="94">The research talent already existed. The missing piece was fast, reliable implementation.</text>
+  <text class="note" x="60" y="125">Not practically scalable six months ago. Plausible now because LLMs reduce the coding bottleneck.</text>
+
+  <g transform="translate(55 175)">
+    <rect class="box box-a" x="0" y="0" width="210" height="125" rx="18"/>
+    <path class="sketch" d="M13,18 C58,4 153,10 197,17"/>
+    <text class="label" x="24" y="38">Professors</text>
+    <text class="body" x="24" y="67">Math, statistics,</text>
+    <text class="body" x="24" y="88">optimization, simulation,</text>
+    <text class="body" x="24" y="109">computational modeling</text>
+  </g>
+
+  <g transform="translate(352 175)">
+    <rect class="box box-b" x="0" y="0" width="220" height="125" rx="18"/>
+    <path class="sketch" d="M15,17 C68,4 160,8 207,19"/>
+    <text class="label" x="24" y="38">LLM coding</text>
+    <text class="body" x="24" y="67">Turns research ideas</text>
+    <text class="body" x="24" y="88">into testable systems</text>
+    <text class="body" x="24" y="109">in days, not months</text>
+  </g>
+
+  <g transform="translate(664 175)">
+    <rect class="box box-c" x="0" y="0" width="225" height="125" rx="18"/>
+    <path class="sketch" d="M16,18 C75,7 164,7 211,18"/>
+    <text class="label" x="24" y="38">Strategies</text>
+    <text class="body" x="24" y="67">Invented, improved,</text>
+    <text class="body" x="24" y="88">backtested, capacity</text>
+    <text class="body" x="24" y="109">expanded, monitored</text>
+  </g>
+
+  <g transform="translate(970 175)">
+    <rect class="box box-d" x="0" y="0" width="180" height="125" rx="18"/>
+    <path class="sketch" d="M14,18 C61,6 128,8 166,17"/>
+    <text class="label" x="24" y="38">Fund</text>
+    <text class="body" x="24" y="67">Trades validated</text>
+    <text class="body" x="24" y="88">systematic</text>
+    <text class="body" x="24" y="109">strategies</text>
+  </g>
+
+  <path class="arrow" d="M268,237 C300,235 316,235 348,237"/>
+  <path class="arrow" d="M576,237 C610,235 626,235 660,237"/>
+  <path class="arrow" d="M894,237 C924,235 940,235 966,237"/>
+
+  <g transform="translate(180 405)">
+    <rect class="box box-e" x="0" y="0" width="300" height="135" rx="18"/>
+    <path class="sketch" d="M18,19 C90,5 219,8 280,19"/>
+    <text class="label" x="26" y="40">Lab funding</text>
+    <text class="body" x="26" y="70">Direct strategy-owner payouts</text>
+    <text class="body" x="26" y="93">plus safety-net support</text>
+    <text class="body" x="26" y="116">for eligible contributors</text>
+  </g>
+
+  <g transform="translate(705 405)">
+    <rect class="box box-a" x="0" y="0" width="315" height="135" rx="18"/>
+    <path class="sketch" d="M18,19 C96,5 229,8 296,18"/>
+    <text class="label" x="26" y="40">6-12 month leave</text>
+    <text class="body" x="26" y="70">Sabbatical or short research</text>
+    <text class="body" x="26" y="93">commitment can support</text>
+    <text class="body" x="26" y="116">several years of lab funding</text>
+  </g>
+
+  <path class="arrow" d="M1058,304 C1058,360 1015,398 1020,435"/>
+  <path class="arrow" d="M704,471 C620,500 560,498 485,472"/>
+  <path class="arrow" d="M178,470 C102,430 75,355 116,304"/>
+
+  <text class="subtitle" x="347" y="594">Simulation goal: test whether this loop can become a large, repeatable alternative funding channel for university research labs.</text>
+</svg>
