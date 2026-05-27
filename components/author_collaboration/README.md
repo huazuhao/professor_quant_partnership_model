@@ -24,9 +24,9 @@ This package coordinates how research authors join the fund, choose activities, 
 
 - **Author lifecycle**: Each Author is hired with 2–4 quarters of research time, fixed invention/improvement biases, and automatically retires once that clock expires.
 - **Quarterly decision funnel**: `process_quarterly_collaboration_cycle` advances every author, gathers available talent, and splits them into improvement or invention pools based on remaining time and personal probabilities.
-- **Improvement workflow**: Improvement groups draw 1–3 members, average their success odds, and on a win call `strategy_manager.process_improvements` to push return or capacity upgrades into live strategies.
+- **Improvement workflow**: Improvement groups draw 1–3 members, choose return or capacity work, target strategies using type-specific weights, and on a win call `strategy_manager.process_improvements` to push upgrades into live strategies. One-quarter authors get first priority for scarce improvement slots; if preferred slots are saturated, flexible authors redirect into invention and last-quarter authors can receive overflow improvement assignments.
 - **Invention pipeline**: Eligible authors lock into two-quarter invention groups; the manager carries them forward, resolves success probabilities later, and successful groups spawn new strategies via `StrategyFactory`.
-- **Hiring feedback loop**: After collaboration resolves, the manager checks `StrategyManager.get_portfolio_metrics`, estimates fund scale, and adds new authors when capacity suggests more research supply is needed.
+- **Hiring feedback loop**: The manager estimates the active sabbatical bench needed for current AUM and adds new authors when active research supply is below target.
 - **Contribution accounting**: Every attempt—successful or not—records `GroupActivity` entries and per-author contribution logs that downstream performance allocation can consume.
 
 ---
@@ -70,7 +70,12 @@ Decision logic
 - `_form_improvement_groups()` / `_form_invention_groups()` assemble randomized groups of 1–3 members (bounded by parameter settings).
 
 Improvements
-- `_execute_improvement_groups()` pulls active strategies from the provided `strategy_manager`, computes group success odds (average of member improvement probabilities), chooses return vs capacity upgrades, and calls `strategy_manager.process_improvements(...)`.
+- `_form_prioritized_improvement_groups()` separates one-quarter authors from flexible authors so researchers who cannot start a two-quarter invention process receive improvement-slot priority.
+- `_assign_strategies_to_groups()` picks return vs capacity work, then assigns targets with a maximum of two improvement groups per strategy per quarter.
+- Capacity work favors high-return strategies with room below the absolute capacity cap; return work favors positive-return strategies with room below the return cap.
+- `_redirect_no_target_improvements_to_invention()` recycles no-target improvement demand into invention candidates when authors still have at least two quarters left.
+- `_choose_overflow_improvement_target()` breaks the preferred per-strategy group cap only for authors who cannot invent and would otherwise have no activity.
+- `_execute_improvement_groups()` computes group success odds (average of member improvement probabilities) and calls `strategy_manager.process_improvements(...)`.
 - Successes tag the upgraded strategy, store improvement type, and mark every author’s contribution log; failures still record participation for auditing.
 
 Invention handling
@@ -107,13 +112,16 @@ Group formation & success
 - `GROUP_SIZE_MIN/MAX` enforce 1–3 member teams; group success always averages member probabilities.
 
 Improvement knobs
-- `PROB_OF_IMPROVE_RETURN` vs `PROB_OF_IMPROVE_CAPACITY` sets how successful groups choose improvement type; `IMPROVEMENT_QUARTERS_REQUIRED` keeps improvements single-quarter.
+- `PROB_OF_IMPROVE_RETURN` vs `PROB_OF_IMPROVE_CAPACITY` sets how successful groups choose improvement type. The current model uses a 50% return / 50% capacity split; `IMPROVEMENT_QUARTERS_REQUIRED` keeps improvements single-quarter.
+- `MAX_IMPROVEMENT_GROUPS_PER_STRATEGY_PER_QUARTER` caps independent same-quarter research groups assigned to one strategy.
 
 Invention knobs
 - `INVENTION_QUARTERS_REQUIRED`, `INVENTION_MIN_REMAINING_QUARTERS`, and `INVENTION_GROUP_ID_PREFIX` manage two-quarter invention workflows.
 
 Hiring & safety net
-- `NEW_AUTHOR_RATE_FACTOR` and `AUTHOR_HIRE_THRESHOLD_AUM` drive scaling of the research bench based on strategy capacity.
+- `AUM_PER_AUTHOR` sets the target AUM coverage per active sabbatical researcher. The current model targets $45M per active author.
+- `AUTHOR_HIRE_THRESHOLD_AUM` gates AUM-based hiring above the minimum active author count.
+- Safety-net eligibility remains cumulative across active and retired contributors; safety-net authors do not count as active research capacity for new hiring.
 - `AUTHOR_GUARANTEED_RETURN` captures the universal minimum payout logic used by downstream performance allocation.
 
 Validation
@@ -164,7 +172,8 @@ print(summary)
 
 - Authors automatically retire when their sampled research duration ends; reactivation is not currently supported.
 - Invention attempts always last two quarters—authors are unavailable during the interim quarter.
-- Improvement attempts require at least one active strategy; otherwise groups record a failed attempt for transparency.
+- Improvement attempts prefer open strategy slots; no-target authors who can still support a two-quarter invention are redirected into invention, while last-quarter authors can use overflow improvement assignments that ignore the preferred per-strategy slot cap.
 - Group success odds are simple averages of member probabilities; no diminishing returns or leadership modifiers are applied yet.
-- Hiring logic is intentionally lightweight and keys off strategy capacity as a proxy for fund AUM.
+- Improvement groups are not merged together; same-strategy assignment is limited by the quarterly group-slot cap.
+- Hiring logic is intentionally lightweight and keys off current fund AUM, with strategy capacity available as a fallback when AUM is not provided.
 - Contribution logs intentionally record both successes and failures so downstream allocation can credit effort as needed.

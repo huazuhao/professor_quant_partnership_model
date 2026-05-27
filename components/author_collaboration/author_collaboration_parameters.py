@@ -46,8 +46,11 @@ class AuthorCollaborationParameters:
     # =============================================================================
 
     # Improvement type selection (when group succeeds)
-    PROB_OF_IMPROVE_RETURN = 0.9
-    PROB_OF_IMPROVE_CAPACITY = 0.1
+    PROB_OF_IMPROVE_RETURN = 0.5
+    PROB_OF_IMPROVE_CAPACITY = 0.5
+
+    # Maximum independent improvement groups assigned to the same strategy per quarter
+    MAX_IMPROVEMENT_GROUPS_PER_STRATEGY_PER_QUARTER = 2
 
     # Improvement execution (immediate results)
     IMPROVEMENT_QUARTERS_REQUIRED = 1  # Always 1 quarter
@@ -74,8 +77,8 @@ class AuthorCollaborationParameters:
     AUTHOR_HIRE_THRESHOLD_AUM = 0.0  # Start hiring at any positive AUM (in millions)
 
     # AUM-per-author hiring model
-    AUM_PER_AUTHOR = 20.0  # Target $20M AUM per author (in millions)
-    # Example: 100M AUM / 20M per author = 5 target authors
+    AUM_PER_AUTHOR = 45.0  # Target $45M AUM per active author (in millions)
+    # Example: 180M AUM / 45M per author = 4 target active authors
 
     # Minimum author count
     MINIMUM_AUTHOR_COUNT = 2  # Always maintain at least 2 active authors
@@ -121,6 +124,7 @@ class AuthorCollaborationParameters:
 
         # Improvement type probabilities must sum to 1
         assert abs((cls.PROB_OF_IMPROVE_RETURN + cls.PROB_OF_IMPROVE_CAPACITY) - 1.0) < 0.001, "Improvement probabilities must sum to 1"
+        assert cls.MAX_IMPROVEMENT_GROUPS_PER_STRATEGY_PER_QUARTER >= 1, "At least one improvement group slot is required per strategy"
 
         # Invention validation
         assert cls.INVENTION_QUARTERS_REQUIRED >= 1, "Invention must take at least 1 quarter"

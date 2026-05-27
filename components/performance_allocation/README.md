@@ -2,17 +2,17 @@
 
 ## Overview
 
-The Performance Allocation Component implements the fund's quarterly profit-sharing system, distributing returns among the fund, strategy authors, and the safety net program. This component serves as the critical economic engine that incentivizes author contributions while ensuring sustainable fund operations and author income security.
+The Performance Allocation Component implements the fund's quarterly NAV accounting and annual performance allocation system. It tracks investor capital cohorts, applies high-water-mark accounting, and distributes annual performance profits among the fund, strategy authors, and the safety net program.
 
-The component processes strategy returns from Capital Allocation, applies high water mark accounting, and distributes profits through a three-way split: fund retention, author performance allocation, and safety net program funding.
+The component treats strategy returns as net trading P&L, charges the quarterly management fee, tracks cohort-level drawdown recovery, and only crystallizes performance allocation at annual year-end quarters.
 
 ---
 
 ## Files
 
-- `performance_allocation_manager.py`: Main orchestrator for quarterly performance allocation with high water mark implementation.
+- `performance_allocation_manager.py`: Main orchestrator for quarterly NAV accounting, cohort-level high water marks, and annual performance allocation.
 - `allocation_summary.py`: Data structures for tracking allocation outcomes, efficiency metrics, and detailed reporting.
-- `performance_allocation_parameters.py`: Configuration parameters matching iteration_one exactly.
+- `performance_allocation_parameters.py`: Configuration parameters for the quarterly economic simulation.
 - `__init__.py`: Component interface and version information.
 
 ---
@@ -24,31 +24,32 @@ The component processes strategy returns from Capital Allocation, applies high w
 The component operates in quarterly cycles following this sequence:
 
 1. **Management Fee Collection**: 0.25% quarterly fee collected from fund AUM
-2. **High Water Mark Calculation**: Determine if fund has net positive performance since last high
-3. **Profit Attribution**: Link strategy returns to their contributing authors via ownership splits
-4. **Performance Distribution**: Allocate 16% of profits proportionally to strategy authors
-5. **Safety Net Assessment**: Identify enrolled authors below $4M guaranteed minimum
-6. **Safety Net Distribution**: Distribute 4% of profits equally among eligible authors
-7. **Fund Retention**: Add remaining 80% of profits to fund AUM
+2. **Net P&L Allocation**: Allocate net strategy P&L across investor cohorts pro rata
+3. **Cohort HWM Tracking**: Track each cohort's annual net profit and cumulative loss account
+4. **Annual Crystallization**: At every fourth quarter, calculate profits above each cohort's high water mark
+5. **Performance Distribution**: Allocate 10% of annual above-HWM profits proportionally to strategy authors
+6. **Safety Net Assessment**: Identify enrolled authors below $1M guaranteed minimum
+7. **Safety Net Distribution**: Distribute up to 10% of annual above-HWM profits equally among eligible authors, capped at each author's remaining guarantee gap
+8. **Fund Retention**: Keep all non-distributed annual profit in investor capital
 
 ### Three-Tier Profit Distribution
 
 ```
-Total Strategy Returns → High Water Mark Check
-  ↓ (if profitable)
-80% → Fund Retention
+Annual Net Profit Above Cohort HWM
+  ↓
+80% → Investor/Fund Retention
 20% → Author Allocation Pool
-  ├─ 80% (16% of total) → Performance payments to strategy authors
-  └─ 20% (4% of total) → Safety Net Pool
+  ├─ 50% (10% of total) → Performance payments to strategy authors
+  └─ 50% (10% of total) → Safety Net Pool
 ```
 
 ### Safety Net Program
 
 **Enrollment**: Authors automatically enrolled when they contribute to any strategy (invention or improvement).
 
-**Eligibility**: Each quarter, enrolled authors with lifetime payments < $4M receive equal share of safety net pool.
+**Eligibility**: At annual performance crystallization, enrolled authors with lifetime payments < $1M receive an equal share of the safety net pool.
 
-**Distribution**: Safety net funds distributed equally among all eligible authors.
+**Distribution**: Safety net funds are distributed equally among all eligible authors, capped at each author's remaining gap to the $1M lifetime guarantee. Any amount that cannot be paid because all eligible authors reached the cap remains in the fund.
 
 ---
 
@@ -68,54 +69,37 @@ Main orchestrator class implementing the complete allocation workflow.
 
 ```python
 def process_quarterly_allocation(strategy_returns, quarter):
-    # Step 1: Collect management fee (0.25% of AUM)
-    management_fee = fund_aum * 0.0025
-    fund_aum -= management_fee
+    collect_management_fee_from_each_capital_cohort()
+    allocate_net_strategy_pnl_to_each_capital_cohort(strategy_returns)
+    track_strategy_returns_for_year_end_author_attribution(strategy_returns)
 
-    # Step 2: Apply high water mark
-    cumulative_loss_account += sum(strategy_returns.values())
-    if cumulative_loss_account > 0:
-        distributable_profits = cumulative_loss_account
-        cumulative_loss_account = 0
-    else:
-        return  # No distribution this quarter
+    if quarter % 4 != 0:
+        return  # NAV updated, but no performance allocation crystallized
 
-    # Step 3: Calculate pools
-    fund_retention = distributable_profits * 0.80
-    performance_pool = distributable_profits * 0.16
-    safety_net_pool = distributable_profits * 0.04
+    distributable_profits = calculate_cohort_profits_above_hwm()
+    if distributable_profits <= 0:
+        reset_annual_profit_trackers()
+        return
 
-    # Step 4: Distribute performance allocation
-    for strategy_id, returns in strategy_returns.items():
-        strategy = get_strategy(strategy_id)
-        strategy_share = (returns / total_returns) * performance_pool
-
-        for author_id, ownership_pct in strategy.ownership_splits.items():
-            payment = strategy_share * ownership_pct
-            record_author_payment(author_id, payment)
-
-    # Step 5: Distribute safety net
-    eligible_authors = get_enrolled_authors_below_4M()
-    if eligible_authors:
-        payment_each = safety_net_pool / len(eligible_authors)
-        for author_id in eligible_authors:
-            record_safety_net_payment(author_id, payment_each)
-
-    # Step 6: Add fund retention to AUM
-    fund_aum += fund_retention
+    performance_pool = distributable_profits * 0.10
+    safety_net_pool = distributable_profits * 0.10
+    distribute_performance_pool_by_annual_strategy_attribution()
+    distribute_capped_safety_net_pool()
+    deduct_actual_author_payments_from_profitable_cohorts()
+    reset_annual_profit_trackers()
 ```
 
 ---
 
 ## Allocation Summary (`allocation_summary.py`)
 
-Comprehensive data structure tracking quarterly performance allocation outcomes.
+Comprehensive data structure tracking quarterly accounting and annual allocation outcomes.
 
 ### Key Fields
 
 - `quarter`, `total_strategy_returns`, `fund_aum_start`, `fund_aum_end`: Basic allocation metrics
 - `management_fee_charged`: Quarterly management fee collected
-- `high_water_mark_met`: Boolean indicating if profits were distributed
+- `high_water_mark_met`: Boolean indicating if annual above-HWM profits were distributed
 - `fund_retention`, `author_performance_total`, `safety_net_total`: Three-way profit split
 - `allocation_by_author`, `safety_net_by_author`: Detailed payment tracking
 
@@ -201,21 +185,22 @@ All parameters stored in `performance_allocation_parameters.py`:
 ```python
 class PerformanceAllocationParameters:
     # Fund initialization
-    FUND_INITIAL_AUM = 10.0  # $10M initial fund size
+    FUND_INITIAL_AUM = 20.0  # $20M initial fund size
 
     # Management fees
     MANAGEMENT_FEE_RATE = 0.25  # 0.25% of AUM per quarter
 
     # Performance allocation
     PERFORMANCE_ALLOCATION = 0.2  # 20% of profits to authors
-    AUTHOR_SAFETY_NET_RATIO = 0.2  # 20% of author allocation to safety net
-    AUTHOR_GUARANTEED_RETURN = 4.0  # $4M lifetime minimum
+    AUTHOR_SAFETY_NET_RATIO = 0.5  # 50% of author allocation to safety net
+    AUTHOR_GUARANTEED_RETURN = 1.0  # $1M lifetime minimum
+    PERFORMANCE_CRYSTALLIZATION_QUARTERS = 4  # Annual crystallization
 ```
 
 **Derived Constants**:
-- Fund Retention Rate: 80% of profits
-- Author Performance Rate: 16% of profits (20% × 80%)
-- Safety Net Rate: 4% of profits (20% × 20%)
+- Base Fund Retention Rate: 80% of profits
+- Author Performance Rate: 10% of profits (20% × 50%)
+- Safety Net Rate: up to 10% of profits (20% × 50%), subject to author guarantee caps
 
 ---
 
@@ -226,12 +211,15 @@ class PerformanceAllocationParameters:
 **Core Algorithm Testing**:
 - **High water mark calculation**: Loss recovery scenarios and profit distribution
 - **Performance attribution**: Correct author-strategy linking via ownership splits
-- **Safety net eligibility**: Guaranteed minimum logic and equal distribution
+- **Safety net eligibility**: Guaranteed minimum cap and equal redistribution
+- **Capital cohorts**: New investor flows receive separate high-water-mark treatment
+- **Withdrawal crystallization**: Redeemed capital pays performance allocation on above-HWM profits before leaving
 - **Three-way profit split**: Exact percentage allocations and conservation
 
 **Edge Cases**:
-- **Zero profits**: No performance allocation, safety net still operates
+- **Zero profits**: No performance allocation and no safety-net payment
 - **Below high water mark**: No distributions during loss recovery
+- **Non-year-end quarters**: NAV updates but performance allocation does not crystallize
 - **Multiple authors per strategy**: Proportional ownership split validation
 - **Management fee collection**: Accurate quarterly fee calculation
 
@@ -253,13 +241,15 @@ class PerformanceAllocationParameters:
 
 ## Key Design Decisions
 
-### Exact iteration_one Replication
+### Fund Accounting Alignment
 
-All parameters and algorithms match iteration_one config.py exactly:
+The simulation keeps the existing quarterly step size while aligning fee and HWM logic to fund accounting:
 - Management fee: 0.25% quarterly
-- Performance allocation: 20% to authors
-- Safety net ratio: 20% of author allocation
-- Guaranteed return: $4M lifetime minimum
+- Performance allocation: 20% to authors, crystallized annually
+- Safety net ratio: 50% of author allocation
+- Guaranteed return: $1M lifetime minimum
+- Investor flows create separate capital cohorts so new investors do not inherit old losses
+- Investor withdrawals crystallize the redeemed share of year-to-date profit above that cohort's HWM/loss account
 
 ### Author ID-Based Tracking
 
@@ -272,15 +262,17 @@ Strategy ownership uses `author_id` strings as keys, not Author objects, enablin
 
 Complete high water mark accounting ensures:
 - No performance fees during loss recovery
-- Proper tracking of cumulative losses
-- Fair profit distribution only above previous highs
+- Proper tracking of cohort-level cumulative losses
+- Fair profit distribution only above each cohort's previous high
+- No double counting after redemptions, because remaining cohort profits and strategy attribution are scaled after withdrawal crystallization
 
 ### Safety Net Eligibility
 
 Only contributing authors (those who invented or improved strategies) are enrolled:
 - Enrollment automatic upon successful strategy contribution
-- Lifetime $4M guarantee for enrolled authors
-- Equal distribution among eligible authors each quarter
+- Lifetime $1M guarantee for enrolled authors
+- Equal distribution among eligible authors at annual crystallization
+- Safety-net payments are capped at the remaining gap to the $1M guarantee
 
 ---
 
@@ -297,7 +289,7 @@ strategy_manager = StrategyManager()
 capital_manager = CapitalAllocationManager(strategy_manager)
 performance_manager = PerformanceAllocationManager(
     strategy_manager=strategy_manager,
-    initial_aum=PAP.FUND_INITIAL_AUM  # $10M from parameters
+    initial_aum=PAP.FUND_INITIAL_AUM  # $20M from parameters
 )
 
 # Quarterly cycle: Capital Allocation → Performance Allocation

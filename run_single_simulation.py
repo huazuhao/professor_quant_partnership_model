@@ -280,7 +280,10 @@ def run_simulation_core(num_quarters: int = 5, initial_authors: int = None, rand
             strategy_manager.apply_quarterly_decay_all()
 
         # Phase 3: Capital allocation
-        available_capital = performance_manager.get_fund_aum()
+        available_capital = (
+            performance_manager.get_fund_aum()
+            * (1.0 - PAP.get_management_fee_decimal())
+        )
         allocation_result = capital_manager.allocate_capital(
             available_capital=available_capital,
             quarter=quarter
@@ -317,11 +320,13 @@ def run_simulation_core(num_quarters: int = 5, initial_authors: int = None, rand
         flow_event = investor_flow_manager.process_quarterly_flows(
             current_aum=performance_manager.get_fund_aum(),
             quarterly_return=performance_manager.get_quarterly_return_percentage(quarter),
-            quarter=quarter
+            quarter=quarter,
+            strategy_capacity=strategy_manager.get_portfolio_metrics()['total_capacity'],
+            previous_quarter_aum=current_aum
         )
 
         # Update AUM with investor flows
-        performance_manager.update_aum(flow_event.net_flow_final)
+        performance_manager.update_aum(flow_event.net_flow_final, quarter=quarter)
 
         # Check for 5-year anniversaries
         for author in author_manager.get_all_authors():
@@ -474,7 +479,10 @@ def run_demo(use_logging: bool = True, num_quarters: int = 5, initial_authors: i
             strategy_manager.apply_quarterly_decay_all()
 
         # Phase 3: Capital allocation
-        available_capital = performance_manager.get_fund_aum()
+        available_capital = (
+            performance_manager.get_fund_aum()
+            * (1.0 - PAP.get_management_fee_decimal())
+        )
         allocation_result = capital_manager.allocate_capital(
             available_capital=available_capital,
             quarter=quarter
@@ -519,29 +527,34 @@ def run_demo(use_logging: bool = True, num_quarters: int = 5, initial_authors: i
         print(f"         💵 Total strategy returns: ${performance_result.total_strategy_returns:.1f}M")
 
         if performance_result.high_water_mark_met:
-            print(f"         ✅ High water mark met! Distributable: ${performance_result.distributable_profits:.1f}M")
+            print(f"         ✅ Annual high water mark met! Distributable: ${performance_result.distributable_profits:.1f}M")
 
-            print(f"\n      📈 Profit Distribution (quarterly):")
-            print(f"         💼 Fund retention (80%): ${performance_result.fund_retention:.1f}M")
+            print(f"\n      📈 Annual Performance Crystallization:")
+            print(f"         💼 Fund retention: ${performance_result.fund_retention:.1f}M")
 
-            print(f"\n         👨‍💼 Performance Pool (16% of profits): ${performance_result.author_performance_total:.1f}M")
+            perf_pool_pct = PAP.get_author_performance_rate() * 100
+            print(f"\n         👨‍💼 Performance Pool ({perf_pool_pct:.0f}% of profits): ${performance_result.author_performance_total:.1f}M")
             if performance_result.total_authors_receiving_performance > 0:
                 avg_perf = performance_result.author_performance_total / performance_result.total_authors_receiving_performance
                 print(f"            └─ {performance_result.total_authors_receiving_performance} authors with profitable strategies (avg ${avg_perf:.3f}M)")
 
-            print(f"\n         🛡️  Safety Net Pool (4% of profits): ${performance_result.safety_net_total:.1f}M")
+            safety_pool_pct = PAP.get_safety_net_rate() * 100
+            print(f"\n         🛡️  Safety Net Paid (up to {safety_pool_pct:.0f}% of profits): ${performance_result.safety_net_total:.1f}M")
             if performance_result.total_authors_receiving_safety_net > 0:
                 avg_safety = performance_result.safety_net_total / performance_result.total_authors_receiving_safety_net
-                print(f"            └─ {performance_result.total_authors_receiving_safety_net} enrolled authors below $4M guarantee (avg ${avg_safety:.3f}M)")
+                print(f"            └─ {performance_result.total_authors_receiving_safety_net} enrolled authors below $1M guarantee (avg ${avg_safety:.3f}M)")
 
                 # Show the gap if it exists
                 gap = performance_result.total_authors_receiving_safety_net - performance_result.total_authors_receiving_performance
                 if gap > 0:
                     print(f"            └─ ({gap} authors receive only safety net - no profitable strategies)")
-        else:
+        elif quarter % PAP.PERFORMANCE_CRYSTALLIZATION_QUARTERS == 0:
             print(f"         ❌ Below high water mark (Loss account: ${performance_manager.get_cumulative_loss_account():.1f}M)")
+        else:
+            print(f"         ⏳ No performance crystallization this quarter (annual HWM accounting)")
+            print(f"         📉 Effective unrecovered drawdown: ${performance_manager.get_cumulative_loss_account():.1f}M")
 
-        print(f"   📊 AUM after performance allocation: ${performance_result.fund_aum_end:.1f}M")
+        print(f"   📊 AUM after fees/allocation: ${performance_result.fund_aum_end:.1f}M")
 
         # Track $100 investment NAV return (before investor flows)
         # NAV return = (AUM after fees - AUM before) / AUM before
@@ -553,7 +566,9 @@ def run_demo(use_logging: bool = True, num_quarters: int = 5, initial_authors: i
         flow_event = investor_flow_manager.process_quarterly_flows(
             current_aum=performance_manager.get_fund_aum(),
             quarterly_return=performance_manager.get_quarterly_return_percentage(quarter),
-            quarter=quarter
+            quarter=quarter,
+            strategy_capacity=strategy_manager.get_portfolio_metrics()['total_capacity'],
+            previous_quarter_aum=current_aum
         )
 
         # Display investor flow results
@@ -567,11 +582,13 @@ def run_demo(use_logging: bool = True, num_quarters: int = 5, initial_authors: i
         print(f"      Trailing 4Q return: {flow_event.trailing_4q_total_return:.1%}")
         print(f"      Flow regime: {flow_event.regime_type}")
         print(f"      AUM multiplier: {flow_event.aum_multiplier:.2f}x")
+        if flow_event.rejected_inflow_due_to_aum_constraints > 0:
+            print(f"      Rejected inflow: ${flow_event.rejected_inflow_due_to_aum_constraints:.2f}M (capacity/growth discipline)")
         if flow_event.any_constraint_applied:
             print(f"      Constraints applied: {flow_event.get_constraint_summary()}")
 
         # Update AUM with investor flows
-        performance_manager.update_aum(flow_event.net_flow_final)
+        performance_manager.update_aum(flow_event.net_flow_final, quarter=quarter)
 
         print(f"   📊 Final AUM (after flows): ${performance_manager.get_fund_aum():.1f}M")
 
@@ -585,8 +602,9 @@ def run_demo(use_logging: bool = True, num_quarters: int = 5, initial_authors: i
                     author_5yr_compensations.append(lifetime_comp)
                     print(f"   🎉 {author.author_id} reached 5-year mark! Lifetime comp: ${lifetime_comp:.2f}M")
 
-        # Calculate quarterly return before fees (as percentage)
-        quarterly_return_pct = (performance_result.total_strategy_returns / current_aum) * 100 if current_aum > 0 else 0.0
+        # Calculate investor net quarterly return before flows.
+        quarterly_return = performance_manager.get_quarterly_return_percentage(quarter)
+        quarterly_return_pct = quarterly_return * 100 if quarterly_return is not None else 0.0
 
         # Collect data for plots
         quarters_list.append(quarter)
@@ -663,11 +681,11 @@ def run_demo(use_logging: bool = True, num_quarters: int = 5, initial_authors: i
     print("\n🎉 Fund Simulation completed successfully!")
     print("\nKey Features Demonstrated:")
     print(f"✅ Management fee collection ({PAP.MANAGEMENT_FEE_RATE}% quarterly)")
-    print("✅ High water mark accounting")
+    print("✅ Cohort-level high water mark accounting")
     fund_pct = PAP.get_fund_retention_rate() * 100
     perf_pct = PAP.get_author_performance_rate() * 100
     safety_pct = PAP.PERFORMANCE_ALLOCATION * PAP.AUTHOR_SAFETY_NET_RATIO * 100
-    print(f"✅ Three-way profit distribution ({fund_pct:.0f}% fund, {perf_pct:.0f}% performance, {safety_pct:.0f}% safety net)")
+    print(f"✅ Annual profit distribution ({fund_pct:.0f}% fund, {perf_pct:.0f}% performance, {safety_pct:.0f}% safety net)")
     print("✅ Author performance allocation based on strategy ownership")
     print("✅ Safety net program for contributing authors")
     print("✅ Investor flows based on trailing 4Q performance with AUM-based scaling")

@@ -53,7 +53,7 @@ Lifecycle mechanics
   - Rebuild the distribution; if expected return drops below `STRATEGY_MIN_ACTIVE_RETURN`, mark inactive.
 - Improvements:
   - Returns (`improve_returns(quarter)`): If active and below `STRATEGY_MAX_EXPECTED_RETURN`, increase `distribution_loc` by `|expected_return| × STRATEGY_RETURN_IMPROVEMENT_FACTOR`, then cap at `STRATEGY_MAX_EXPECTED_RETURN`. Updates improvement counters.
-  - Capacity (`improve_capacity(quarter)`): If active and below `STRATEGY_MAX_CAPACITY_ABSOLUTE`, sample an improvement factor U[min,max], apply multiplier `1 + (factor / max_capacity)` (diminishing effect as capacity grows), and clamp to `STRATEGY_MAX_CAPACITY_ABSOLUTE`. Updates improvement counters.
+- Capacity (`improve_capacity(quarter)`): If active and below `STRATEGY_MAX_CAPACITY_ABSOLUTE`, add an absolute deployable-capital increment sampled from `STRATEGY_CAPACITY_IMPROVEMENT_FACTOR_MIN/MAX`, then clamp to `STRATEGY_MAX_CAPACITY_ABSOLUTE`. Updates improvement counters.
 
 Performance
 - `generate_quarterly_return(allocated_capital)`:
@@ -127,13 +127,13 @@ Return distributions (quarterly, percent units)
 - Uniform: `UNIFORM_DISTRIBUTION_LOC_MIN/MAX` (lower bound range), `UNIFORM_DISTRIBUTION_SCALE_MIN/MAX` (width range).
 
 Capacity
-- Initial range: `STRATEGY_INITIAL_CAPACITY_MIN/MAX` (millions).
-- Hard cap: `STRATEGY_MAX_CAPACITY_ABSOLUTE`.
+- Initial range: `STRATEGY_INITIAL_CAPACITY_MIN/MAX` (`$10M-$50M`).
+- Hard cap: `STRATEGY_MAX_CAPACITY_ABSOLUTE` (`$100M`).
 
 Lifecycle and improvements
 - Decay: `STRATEGY_RETURN_DECAY_RATE` and inactive threshold `STRATEGY_MIN_ACTIVE_RETURN`.
 - Return improvement: `STRATEGY_RETURN_IMPROVEMENT_FACTOR` and cap `STRATEGY_MAX_EXPECTED_RETURN`.
-- Capacity improvement: `STRATEGY_CAPACITY_IMPROVEMENT_FACTOR_MIN/MAX`.
+- Capacity improvement: `STRATEGY_CAPACITY_IMPROVEMENT_FACTOR_MIN/MAX` (`+$10M` to `+$50M`).
 
 Risk profile
 - Beta range: `STRATEGY_BETA_MIN/MAX`.

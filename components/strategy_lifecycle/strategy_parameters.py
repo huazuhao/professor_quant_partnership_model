@@ -32,8 +32,8 @@ class StrategyParameters:
     # ============================================
 
     # Initial capacity (in millions)
-    STRATEGY_INITIAL_CAPACITY_MIN = 20  # Minimum starting capacity
-    STRATEGY_INITIAL_CAPACITY_MAX = 100  # Maximum starting capacity
+    STRATEGY_INITIAL_CAPACITY_MIN = 10  # Minimum starting capacity
+    STRATEGY_INITIAL_CAPACITY_MAX = 50  # Maximum starting capacity
 
     # Capacity limits
     STRATEGY_MAX_CAPACITY_ABSOLUTE = 100  # Hard cap on any strategy capacity
@@ -53,7 +53,7 @@ class StrategyParameters:
     # Improvement factors
     STRATEGY_RETURN_IMPROVEMENT_FACTOR = 0.1  # Return boost from improvement
     STRATEGY_CAPACITY_IMPROVEMENT_FACTOR_MIN = 10  # Min absolute increase
-    STRATEGY_CAPACITY_IMPROVEMENT_FACTOR_MAX = 100  # Max absolute increase
+    STRATEGY_CAPACITY_IMPROVEMENT_FACTOR_MAX = 50  # Max absolute increase
 
     # Improvement limits
     STRATEGY_MAX_EXPECTED_RETURN = 5.0  # Cap on return after improvements (%)
@@ -65,4 +65,3 @@ class StrategyParameters:
     # Beta (market sensitivity)
     STRATEGY_BETA_MIN = 0.5  # Defensive strategies
     STRATEGY_BETA_MAX = 2.0  # Aggressive strategies
-

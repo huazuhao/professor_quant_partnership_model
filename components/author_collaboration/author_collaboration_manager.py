@@ -13,6 +13,7 @@ from collections import defaultdict
 from .author import Author, GroupActivity
 from .author_factory import AuthorFactory
 from .author_collaboration_parameters import AuthorCollaborationParameters as ACP
+from components.strategy_lifecycle.strategy_parameters import StrategyParameters as SP
 
 
 class AuthorCollaborationManager:
@@ -97,16 +98,36 @@ class AuthorCollaborationManager:
         available_authors = self.get_available_authors()
         improvement_candidates, invention_candidates = self._collect_author_decisions(available_authors)
 
-        # Phase 4: Form improvement groups, assign strategies, and consolidate
-        improvement_groups = self._form_improvement_groups(improvement_candidates)
+        # Phase 4: Form improvement groups and assign weighted strategy targets.
+        # Authors with only one quarter left cannot invent, so they get first
+        # priority for scarce improvement slots.
+        (
+            improvement_groups,
+            last_quarter_improvement_count,
+            flexible_improvement_count
+        ) = self._form_prioritized_improvement_groups(improvement_candidates)
         assigned_groups = self._assign_strategies_to_groups(improvement_groups, strategy_manager)
-        consolidated_groups = self._consolidate_groups_by_strategy(assigned_groups)
-        improvement_results, capacity_improvements, return_improvements = self._execute_improvement_groups(consolidated_groups, quarter, strategy_manager)
+        (
+            executable_improvement_groups,
+            redirected_invention_candidates,
+            redirected_group_count,
+            overflow_group_count
+        ) = self._redirect_no_target_improvements_to_invention(
+            assigned_groups,
+            strategy_manager
+        )
+        improvement_results, capacity_improvements, return_improvements = self._execute_improvement_groups(executable_improvement_groups, quarter, strategy_manager)
         group_activities.extend(improvement_results)
         stats['capacity_improvements'] = capacity_improvements
         stats['return_improvements'] = return_improvements
+        stats['improvement_groups_redirected_to_invention'] = redirected_group_count
+        stats['authors_redirected_to_invention'] = len(redirected_invention_candidates)
+        stats['overflow_improvement_groups'] = overflow_group_count
+        stats['last_quarter_improvement_candidates'] = last_quarter_improvement_count
+        stats['flexible_improvement_candidates'] = flexible_improvement_count
 
         # Phase 5: Form invention groups and start process
+        invention_candidates.extend(redirected_invention_candidates)
         invention_groups = self._form_invention_groups(invention_candidates)
         invention_starts = self._start_invention_groups(invention_groups, quarter)
         group_activities.extend(invention_starts)
@@ -193,12 +214,49 @@ class AuthorCollaborationManager:
 
         return groups
 
+    def _form_prioritized_improvement_groups(
+        self,
+        candidates: List[Author]
+    ) -> Tuple[List[List[Author]], int, int]:
+        """
+        Form improvement groups with last-quarter authors first.
+
+        Authors with one quarter remaining cannot enter a two-quarter invention
+        process, so they receive first priority for scarce improvement slots.
+        Authors with enough time left to invent are grouped after them and can
+        later be redirected to invention if no improvement slot remains.
+        """
+        last_quarter_candidates = [
+            author for author in candidates
+            if not author.can_attempt_invention()
+        ]
+        flexible_candidates = [
+            author for author in candidates
+            if author.can_attempt_invention()
+        ]
+
+        prioritized_groups = (
+            self._form_improvement_groups(last_quarter_candidates)
+            + self._form_improvement_groups(flexible_candidates)
+        )
+
+        return (
+            prioritized_groups,
+            len(last_quarter_candidates),
+            len(flexible_candidates)
+        )
+
     def _assign_strategies_to_groups(self, groups: List[List[Author]], strategy_manager) -> List[Dict]:
         """
         Assign target strategies and improvement types to groups.
 
-        Only assigns strategies that have room to improve (either returns or capacity).
-        The improvement type is selected based on what the strategy can actually be improved in.
+        Each group first chooses whether to pursue a return or capacity improvement, then
+        chooses a strategy with type-specific weights:
+        - Capacity work favors high-return strategies with more unused capacity headroom.
+        - Return work favors positive-return strategies with more room below the return cap.
+
+        Each strategy can receive at most MAX_IMPROVEMENT_GROUPS_PER_STRATEGY_PER_QUARTER
+        independent improvement groups in a quarter.
 
         Args:
             groups: List of improvement groups (list of authors)
@@ -212,12 +270,28 @@ class AuthorCollaborationManager:
                     'improvement_type': str ('return' or 'capacity')
                 }
         """
-        # Get only strategies that have room to improve
-        improvable_strategies = strategy_manager.get_improvable_strategies()
         assigned_groups = []
+        strategy_slot_counts = defaultdict(int)
 
         for group in groups:
-            if not improvable_strategies:
+            improvement_type = self._choose_improvement_type()
+            target_strategy = self._choose_weighted_improvement_target(
+                strategy_manager,
+                improvement_type,
+                strategy_slot_counts
+            )
+
+            if target_strategy is None:
+                fallback_type = 'capacity' if improvement_type == 'return' else 'return'
+                target_strategy = self._choose_weighted_improvement_target(
+                    strategy_manager,
+                    fallback_type,
+                    strategy_slot_counts
+                )
+                if target_strategy is not None:
+                    improvement_type = fallback_type
+
+            if target_strategy is None:
                 # No improvable strategies available - group will fail later
                 assigned_groups.append({
                     'authors': group,
@@ -226,28 +300,7 @@ class AuthorCollaborationManager:
                 })
                 continue
 
-            # Randomly select an improvable strategy
-            target_strategy = random.choice(improvable_strategies)
-
-            # Determine which improvement types are possible for this strategy
-            can_improve_return = target_strategy.can_improve_returns()
-            can_improve_capacity = target_strategy.can_improve_capacity()
-
-            # Select improvement type based on what's possible
-            if can_improve_return and can_improve_capacity:
-                # Both possible - use probability to decide
-                improvement_type = ('return' if random.random() < ACP.PROB_OF_IMPROVE_RETURN
-                                  else 'capacity')
-            elif can_improve_return:
-                # Only return improvement possible
-                improvement_type = 'return'
-            elif can_improve_capacity:
-                # Only capacity improvement possible
-                improvement_type = 'capacity'
-            else:
-                # This shouldn't happen (strategy was in improvable list)
-                # But handle it gracefully
-                improvement_type = None
+            strategy_slot_counts[target_strategy.strategy_id] += 1
 
             assigned_groups.append({
                 'authors': group,
@@ -257,72 +310,173 @@ class AuthorCollaborationManager:
 
         return assigned_groups
 
-    def _consolidate_groups_by_strategy(self, assigned_groups: List[Dict]) -> List[Dict]:
-        """
-        Consolidate multiple groups working on same strategy into single groups.
+    def _choose_improvement_type(self) -> str:
+        """Choose whether a group attempts return or capacity improvement."""
+        return 'return' if random.random() < ACP.PROB_OF_IMPROVE_RETURN else 'capacity'
 
-        If multiple groups are assigned to the same strategy, merge them and use
-        majority vote to decide improvement type (capacity vs return).
+    def _choose_weighted_improvement_target(
+        self,
+        strategy_manager,
+        improvement_type: str,
+        strategy_slot_counts: Dict[str, int],
+        enforce_slot_limit: bool = True
+    ):
+        """Choose a strategy target using type-specific attractiveness weights."""
+        candidates = []
+        weights = []
 
-        Args:
-            assigned_groups: List of assigned groups from _assign_strategies_to_groups
-
-        Returns:
-            List[Dict]: Consolidated groups (one per strategy)
-        """
-        # Group by strategy
-        strategy_groups = defaultdict(list)
-
-        for assigned_group in assigned_groups:
-            if assigned_group['target_strategy'] is None:
-                # No strategy assigned - keep as-is (will fail later)
-                strategy_groups[None].append(assigned_group)
-            else:
-                strategy_id = assigned_group['target_strategy'].strategy_id
-                strategy_groups[strategy_id].append(assigned_group)
-
-        # Consolidate
-        consolidated = []
-
-        for strategy_id, groups_list in strategy_groups.items():
-            if strategy_id is None:
-                # Groups with no strategy - keep separate
-                consolidated.extend(groups_list)
+        for strategy in strategy_manager.get_active_strategies():
+            if (
+                enforce_slot_limit
+                and
+                strategy_slot_counts[strategy.strategy_id]
+                >= ACP.MAX_IMPROVEMENT_GROUPS_PER_STRATEGY_PER_QUARTER
+            ):
                 continue
 
-            if len(groups_list) == 1:
-                # Only one group for this strategy - keep as-is
-                consolidated.append(groups_list[0])
+            if improvement_type == 'capacity':
+                if not strategy.can_improve_capacity():
+                    continue
+                weight = self._capacity_improvement_weight(strategy)
+            elif improvement_type == 'return':
+                if not strategy.can_improve_returns():
+                    continue
+                weight = self._return_improvement_weight(strategy)
             else:
-                # Multiple groups on same strategy - CONSOLIDATE!
-                all_authors = []
-                capacity_votes = 0
-                return_votes = 0
+                continue
 
-                for group_dict in groups_list:
-                    all_authors.extend(group_dict['authors'])
-                    if group_dict['improvement_type'] == 'capacity':
-                        capacity_votes += len(group_dict['authors'])
-                    else:
-                        return_votes += len(group_dict['authors'])
+            if weight > 0:
+                candidates.append(strategy)
+                weights.append(weight)
 
-                # Majority vote decides improvement type
-                if capacity_votes > return_votes:
-                    final_type = 'capacity'
-                elif return_votes > capacity_votes:
-                    final_type = 'return'
-                else:
-                    # Tie - random choice
-                    final_type = 'capacity' if random.random() < 0.5 else 'return'
+        if not candidates:
+            return None
 
-                # Create consolidated group
-                consolidated.append({
-                    'authors': all_authors,
-                    'target_strategy': groups_list[0]['target_strategy'],  # Same strategy for all
-                    'improvement_type': final_type
+        return random.choices(candidates, weights=weights, k=1)[0]
+
+    def _capacity_improvement_weight(self, strategy) -> float:
+        """Favor high-return strategies with room below the absolute capacity cap."""
+        expected_return = max(0.0, strategy.get_expected_return())
+        if expected_return <= 0 or SP.STRATEGY_MAX_CAPACITY_ABSOLUTE <= 0:
+            return 0.0
+
+        capacity_headroom = max(
+            0.0,
+            1.0 - (strategy.max_capacity / SP.STRATEGY_MAX_CAPACITY_ABSOLUTE)
+        )
+        return expected_return * capacity_headroom
+
+    def _return_improvement_weight(self, strategy) -> float:
+        """Favor positive-return strategies with room below the return cap."""
+        expected_return = max(0.0, strategy.get_expected_return())
+        if expected_return <= 0 or SP.STRATEGY_MAX_EXPECTED_RETURN <= 0:
+            return 0.0
+
+        return_headroom = max(
+            0.0,
+            1.0 - (expected_return / SP.STRATEGY_MAX_EXPECTED_RETURN)
+        )
+        return expected_return * return_headroom
+
+    def _consolidate_groups_by_strategy(self, assigned_groups: List[Dict]) -> List[Dict]:
+        """
+        Return assigned groups unchanged.
+
+        Strategy assignment now enforces a per-strategy quarterly slot limit, so
+        independent groups should remain independent improvement attempts.
+        """
+        return assigned_groups
+
+    def _redirect_no_target_improvements_to_invention(
+        self,
+        assigned_groups: List[Dict],
+        strategy_manager=None
+    ) -> Tuple[List[Dict], List[Author], int, int]:
+        """
+        Recycle saturated improvement demand into new-strategy invention.
+
+        If an improvement group cannot be assigned because strategy research
+        slots are saturated, authors who still have enough time for a two-quarter
+        invention process are moved back into the invention candidate pool for
+        this same quarter. Authors too close to the end of their sabbatical stay
+        in improvement work; if the only blocker is the preferred per-strategy
+        slot cap, they can receive overflow assignments that ignore that cap.
+        """
+        executable_groups = []
+        redirected_invention_candidates = []
+        redirected_group_count = 0
+        overflow_group_count = 0
+
+        for group_dict in assigned_groups:
+            if group_dict['target_strategy'] is not None:
+                executable_groups.append(group_dict)
+                continue
+
+            inventable_authors = [
+                author for author in group_dict['authors']
+                if author.can_attempt_invention()
+            ]
+            non_inventable_authors = [
+                author for author in group_dict['authors']
+                if not author.can_attempt_invention()
+            ]
+
+            if inventable_authors:
+                redirected_invention_candidates.extend(inventable_authors)
+                redirected_group_count += 1
+
+            if non_inventable_authors:
+                target_strategy = None
+                improvement_type = None
+                if strategy_manager is not None:
+                    (
+                        target_strategy,
+                        improvement_type
+                    ) = self._choose_overflow_improvement_target(strategy_manager)
+
+                if target_strategy is not None:
+                    overflow_group_count += 1
+
+                executable_groups.append({
+                    'authors': non_inventable_authors,
+                    'target_strategy': target_strategy,
+                    'improvement_type': improvement_type
                 })
 
-        return consolidated
+        return (
+            executable_groups,
+            redirected_invention_candidates,
+            redirected_group_count,
+            overflow_group_count
+        )
+
+    def _choose_overflow_improvement_target(self, strategy_manager):
+        """
+        Choose an improvement target without enforcing the preferred slot cap.
+
+        This is only used for authors who cannot be redirected into invention
+        and would otherwise have no productive research activity.
+        """
+        improvement_type = self._choose_improvement_type()
+        target_strategy = self._choose_weighted_improvement_target(
+            strategy_manager,
+            improvement_type,
+            defaultdict(int),
+            enforce_slot_limit=False
+        )
+
+        if target_strategy is None:
+            fallback_type = 'capacity' if improvement_type == 'return' else 'return'
+            target_strategy = self._choose_weighted_improvement_target(
+                strategy_manager,
+                fallback_type,
+                defaultdict(int),
+                enforce_slot_limit=False
+            )
+            if target_strategy is not None:
+                improvement_type = fallback_type
+
+        return target_strategy, improvement_type
 
     def _execute_improvement_groups(self, groups: List[Dict], quarter: int,
                                   strategy_manager) -> Tuple[List[GroupActivity], int, int]:
@@ -366,6 +520,8 @@ class AuthorCollaborationManager:
                 quarter=quarter,
                 success=None  # Will be set after probability calculation
             )
+            activity.target_strategy_id = target_strategy.strategy_id
+            activity.improvement_type = improvement_type
 
             # Calculate group success probability (average of members)
             individual_probs = [author.improvement_probability for author in authors]
@@ -380,9 +536,6 @@ class AuthorCollaborationManager:
 
                 if results.get(target_strategy.strategy_id, False):
                     # Improvement succeeded
-                    activity.target_strategy_id = target_strategy.strategy_id
-                    activity.improvement_type = improvement_type
-
                     # Track improvement type
                     if improvement_type == 'capacity':
                         capacity_improvements += 1
@@ -581,16 +734,16 @@ class AuthorCollaborationManager:
 
     def _evaluate_author_hiring(self, quarter: int, strategy_manager, current_aum: float = None) -> int:
         """
-        Evaluate whether to hire new authors based on AUM-per-author model.
+        Evaluate whether to hire new authors based on active research coverage.
 
-        Hiring model based on cumulative safety net enrollment:
-        - Target cumulative authors = max(MINIMUM_AUTHOR_COUNT, current_aum / AUM_PER_AUTHOR)
-        - Count authors in safety net program (contributed to strategies, lifetime < $4M)
-        - Hire = target - current_in_safety_net
+        Hiring model based on active sabbatical researchers:
+        - Target active authors = max(MINIMUM_AUTHOR_COUNT, current_aum / AUM_PER_AUTHOR)
+        - Count authors still in their 2-4 quarter research window
+        - Hire = target_active_authors - current_active_authors
         - Only hire above threshold AUM (except for minimum requirement)
 
-        The AUM-per-author ratio supports authors through their entire career up to $4M guarantee,
-        not just while actively working. So we count cumulative authors in safety net, not just active.
+        Retired contributors can remain eligible for safety-net payments, but they do not count
+        as current research capacity for new strategy development.
 
         Args:
             quarter: Current quarter
@@ -600,31 +753,27 @@ class AuthorCollaborationManager:
         Returns:
             int: Number of authors hired this quarter
         """
-        from components.performance_allocation.performance_allocation_parameters import PerformanceAllocationParameters as PAP
-
         # Get AUM (prefer actual AUM, fallback to total capacity)
         if current_aum is None:
             portfolio_metrics = strategy_manager.get_portfolio_metrics()
             current_aum = portfolio_metrics.get('total_capacity', 0)
 
-        # Count authors currently in safety net program
-        # These are authors who have contributed to strategies and have lifetime payments < $4M guarantee
-        authors_in_safety_net = self._count_authors_in_safety_net(strategy_manager)
+        current_active_authors = len(self.get_active_authors())
 
-        # Calculate target cumulative author count based on AUM-per-author model
-        target_cumulative_authors_from_aum = int(current_aum / ACP.AUM_PER_AUTHOR)
+        # Calculate target active author count based on AUM-per-author model
+        target_active_authors_from_aum = int(current_aum / ACP.AUM_PER_AUTHOR)
 
         # Enforce minimum author count (overrides AUM-based calculation)
-        target_cumulative_authors = max(ACP.MINIMUM_AUTHOR_COUNT, target_cumulative_authors_from_aum)
+        target_active_authors = max(ACP.MINIMUM_AUTHOR_COUNT, target_active_authors_from_aum)
 
         # For AUM-based hiring (above minimum), check threshold
-        if authors_in_safety_net >= ACP.MINIMUM_AUTHOR_COUNT:
+        if current_active_authors >= ACP.MINIMUM_AUTHOR_COUNT:
             if current_aum <= ACP.AUTHOR_HIRE_THRESHOLD_AUM:
                 return 0
 
-        # Hire multiple authors to reach target cumulative count
-        if authors_in_safety_net < target_cumulative_authors:
-            authors_to_hire = target_cumulative_authors - authors_in_safety_net
+        # Hire multiple authors to reach target active count
+        if current_active_authors < target_active_authors:
+            authors_to_hire = target_active_authors - current_active_authors
             for _ in range(authors_to_hire):
                 new_author = AuthorFactory.create_new_author(hire_quarter=quarter)
                 self.add_author(new_author)
@@ -638,7 +787,7 @@ class AuthorCollaborationManager:
 
         Authors are in safety net if:
         1. They have contributed to at least one strategy (enrolled)
-        2. Their lifetime payments are below the $4M guarantee
+        2. Their lifetime payments are below the $1M guarantee
 
         This includes both active and retired authors.
 

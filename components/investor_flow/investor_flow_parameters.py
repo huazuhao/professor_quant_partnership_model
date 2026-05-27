@@ -6,6 +6,7 @@ Implements continuous linear Gaussian model with regime-dependent sign constrain
 - Gaussian noise: flow ~ N(mean, volatility × AUM)
 - Regime constraints: positive returns → no outflows, negative returns → no inflows
 - Hard caps: maximum ±10% AUM flows per quarter
+- AUM acceptance constraints: inflows capped by strategy capacity and quarterly growth pace
 """
 
 
@@ -85,6 +86,17 @@ class InvestorFlowParameters:
     MAX_OUTFLOW_PCT = 0.5  # No more than 50% AUM outflow (fund can halve)
 
     # ============================================
+    # HARD CAPS - LAYER 3: AUM ACCEPTANCE CONSTRAINTS
+    # ============================================
+
+    # Positive investor demand can be rejected if the fund lacks deployable capacity
+    # or the inflow would grow AUM too quickly. Negative flows are not constrained.
+    ENFORCE_AUM_ACCEPTANCE_CONSTRAINTS = True
+
+    # Maximum accepted final AUM versus previous quarter-end AUM.
+    MAX_QUARTERLY_AUM_GROWTH_PCT = 0.25
+
+    # ============================================
     # VALIDATION
     # ============================================
 
@@ -109,6 +121,8 @@ class InvestorFlowParameters:
             "MAX_INFLOW_PCT must be in (0, 1]"
         assert 0 < cls.MAX_OUTFLOW_PCT <= 1.0, \
             "MAX_OUTFLOW_PCT must be in (0, 1]"
+        assert cls.MAX_QUARTERLY_AUM_GROWTH_PCT >= 0, \
+            "MAX_QUARTERLY_AUM_GROWTH_PCT must be >= 0"
 
         # Lookback period must be positive
         assert cls.PERFORMANCE_LOOKBACK_QUARTERS >= 1, \
@@ -156,7 +170,9 @@ class InvestorFlowParameters:
             'enforce_regime_sign': cls.ENFORCE_REGIME_SIGN,
             'zero_return_tolerance': cls.ZERO_RETURN_TOLERANCE,
             'max_inflow_pct': cls.MAX_INFLOW_PCT,
-            'max_outflow_pct': cls.MAX_OUTFLOW_PCT
+            'max_outflow_pct': cls.MAX_OUTFLOW_PCT,
+            'enforce_aum_acceptance_constraints': cls.ENFORCE_AUM_ACCEPTANCE_CONSTRAINTS,
+            'max_quarterly_aum_growth_pct': cls.MAX_QUARTERLY_AUM_GROWTH_PCT
         }
 
 

@@ -6,7 +6,7 @@ Gaussian sampling, regime constraints, and magnitude caps.
 """
 
 from dataclasses import dataclass
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 
 @dataclass
@@ -50,7 +50,10 @@ class FlowEvent:
     # Stage 2: After regime sign constraint (Layer 1)
     net_flow_after_sign_constraint: float
 
-    # Stage 3: After magnitude caps (Layer 2) - FINAL
+    # Stage 3: After magnitude caps (Layer 2)
+    net_flow_after_magnitude_cap: float
+
+    # Stage 4: After AUM acceptance constraints - FINAL
     net_flow_final: float
 
     # ============================================
@@ -67,6 +70,11 @@ class FlowEvent:
     regime_type: str  # "positive", "negative", "zero"
     regime_constraint_applied: bool  # True if Layer 1 modified the flow
     magnitude_cap_applied: bool      # True if Layer 2 modified the flow
+    aum_acceptance_constraint_applied: bool = False
+    rejected_inflow_due_to_aum_constraints: float = 0.0
+    strategy_capacity_cap: Optional[float] = None
+    quarterly_growth_cap: Optional[float] = None
+    max_aum_after_constraints: Optional[float] = None
 
     def __post_init__(self):
         """Calculate derived metrics after initialization."""
@@ -94,7 +102,11 @@ class FlowEvent:
     @property
     def any_constraint_applied(self) -> bool:
         """Check if any constraint was applied."""
-        return self.regime_constraint_applied or self.magnitude_cap_applied
+        return (
+            self.regime_constraint_applied
+            or self.magnitude_cap_applied
+            or self.aum_acceptance_constraint_applied
+        )
 
     def get_summary(self) -> Dict[str, Any]:
         """
@@ -121,18 +133,24 @@ class FlowEvent:
             # Flow stages
             'flow_sampled': self.net_flow_sampled,
             'flow_after_sign_constraint': self.net_flow_after_sign_constraint,
+            'flow_after_magnitude_cap': self.net_flow_after_magnitude_cap,
             'flow_final': self.net_flow_final,
+            'rejected_inflow_due_to_aum_constraints': self.rejected_inflow_due_to_aum_constraints,
 
             # AUM
             'aum_before': self.aum_before_flow,
             'aum_after': self.aum_after_flow,
             'aum_growth_rate': self.aum_growth_rate,
             'flow_pct_of_aum': self.flow_as_pct_of_aum,
+            'strategy_capacity_cap': self.strategy_capacity_cap,
+            'quarterly_growth_cap': self.quarterly_growth_cap,
+            'max_aum_after_constraints': self.max_aum_after_constraints,
 
             # Constraints
             'regime_type': self.regime_type,
             'regime_constraint_applied': self.regime_constraint_applied,
             'magnitude_cap_applied': self.magnitude_cap_applied,
+            'aum_acceptance_constraint_applied': self.aum_acceptance_constraint_applied,
             'any_constraint_applied': self.any_constraint_applied
         }
 
@@ -151,5 +169,7 @@ class FlowEvent:
             messages.append(f"Regime constraint ({self.regime_type})")
         if self.magnitude_cap_applied:
             messages.append("Magnitude cap")
+        if self.aum_acceptance_constraint_applied:
+            messages.append("AUM acceptance constraint")
 
         return " + ".join(messages)

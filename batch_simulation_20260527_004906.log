@@ -26,80 +26,80 @@ Configuration:
 
 💰 Investment Value Distribution ($100 initial investment):
    Simulations: 100
-   Mean: $179.30
-   Median: $177.45
-   Std Dev: $30.33
-   Min/Max: $95.29 / $272.05
+   Mean: $294.81
+   Median: $302.52
+   Std Dev: $61.76
+   Min/Max: $149.88 / $408.84
 
    Percentiles:
-     10th: $141.67
-     25th: $163.82
-     50th: $177.45
-     75th: $198.12
-     90th: $211.78
+     10th: $217.53
+     25th: $249.00
+     50th: $302.52
+     75th: $344.94
+     90th: $371.62
 
    Returns:
-     Mean total return: +79.3%
-     Median total return: +77.5%
+     Mean total return: +194.8%
+     Median total return: +202.5%
 
 💼 Final Fund AUM Distribution:
    Simulations: 100
-   Mean: $5548.4M
-   Median: $4868.2M
-   Std Dev: $3311.5M
-   Min/Max: $459.0M / $15624.4M
+   Mean: $1550.3M
+   Median: $1267.8M
+   Std Dev: $1029.4M
+   Min/Max: $9.3M / $5128.8M
 
    Percentiles:
-     10th: $2112.4M
-     25th: $3321.5M
-     50th: $4868.2M
-     75th: $6636.2M
-     90th: $10215.4M
+     10th: $314.8M
+     25th: $889.9M
+     50th: $1267.8M
+     75th: $2187.2M
+     90th: $2867.6M
 
 👥 5-Year Author Compensation Distribution:
-   Total authors at 5-year mark: 7459 (across 100 simulations)
-   Avg authors per simulation: 74.6
-   Mean compensation: $1.23M
-   Median compensation: $1.15M
-   Std Dev: $0.58M
-   Min/Max: $0.02M / $6.05M
+   Total authors at 5-year mark: 2489 (across 100 simulations)
+   Avg authors per simulation: 24.9
+   Mean compensation: $1.33M
+   Median compensation: $1.34M
+   Std Dev: $0.55M
+   Min/Max: $0.01M / $4.16M
 
    Percentiles:
-     10th: $0.58M
-     25th: $0.84M
-     50th: $1.15M
-     75th: $1.52M
-     90th: $1.97M
+     10th: $0.52M
+     25th: $1.05M
+     50th: $1.34M
+     75th: $1.63M
+     90th: $2.00M
 
 🎓 Total Author Count Distribution:
    Simulations: 100
-   Mean: 383.9
-   Median: 353.5
-   Std Dev: 224.3
-   Min/Max: 38 / 1096
+   Mean: 155.5
+   Median: 138.5
+   Std Dev: 95.0
+   Min/Max: 27 / 459
 
    Percentiles:
-     10th: 147.8
-     25th: 232.5
-     50th: 353.5
-     75th: 485.0
-     90th: 694.1
+     10th: 43.9
+     25th: 81.2
+     50th: 138.5
+     75th: 220.5
+     90th: 294.6
 
 💰 Paid Author Count Distribution (Authors Who Received Compensation):
    Simulations: 100
-   Mean: 357.6
-   Median: 333.5
-   Std Dev: 209.5
-   Min/Max: 36 / 1017
+   Mean: 141.0
+   Median: 120.0
+   Std Dev: 86.3
+   Min/Max: 21 / 411
 
    Percentiles:
-     10th: 131.8
-     25th: 213.5
-     50th: 333.5
-     75th: 461.0
-     90th: 649.1
+     10th: 40.5
+     25th: 73.8
+     50th: 120.0
+     75th: 194.2
+     90th: 261.2
 
-   Payment Rate: 93.2% of authors received compensation
+   Payment Rate: 90.7% of authors received compensation
 
 📈 Generating plots...
 

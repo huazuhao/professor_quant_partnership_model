@@ -46,7 +46,7 @@ where:
   σ_flow = volatility × AUM (10% by default)
 ```
 
-**Two-Layer Clipping**:
+**Three-Layer Clipping**:
 1. **Layer 1 - Regime Sign Constraint**: Force flow sign to match performance
    - Positive returns → no outflows allowed (flows ≥ 0)
    - Negative returns → no inflows allowed (flows ≤ 0)
@@ -55,6 +55,12 @@ where:
 2. **Layer 2 - Magnitude Caps**: Hard limits on flow size
    - Maximum inflow: 100% of AUM per quarter (fund can double)
    - Maximum outflow: 50% of AUM per quarter (fund can halve)
+
+3. **Layer 3 - AUM Acceptance Constraints**: Positive investor demand is accepted only up to fund capacity discipline
+   - Final AUM cannot exceed total active strategy capacity from the Strategy Lifecycle component
+   - Final AUM cannot exceed 125% of previous quarter-end AUM
+   - If current AUM already exceeds capacity, new inflow is zero and excess AUM remains undeployed
+   - Negative flows are not constrained by these acceptance rules
 
 ---
 
@@ -74,7 +80,7 @@ where:
 Main orchestrator class that processes quarterly flows.
 
 **Key Methods**:
-- `process_quarterly_flows(current_aum, quarterly_return, quarter)`: Main entry point
+- `process_quarterly_flows(current_aum, quarterly_return, quarter, strategy_capacity=None, previous_quarter_aum=None)`: Main entry point
 - `get_flow_event(quarter)`: Retrieve specific quarter's flow event
 - `get_flow_efficiency_stats()`: Aggregate statistics across all quarters
 
@@ -86,7 +92,8 @@ Main orchestrator class that processes quarterly flows.
 5. Sample from Gaussian distribution
 6. Apply Layer 1: Regime sign constraint
 7. Apply Layer 2: Magnitude caps
-8. Return FlowEvent with complete details
+8. Apply Layer 3: AUM acceptance constraints
+9. Return FlowEvent with complete details
 
 ---
 
@@ -99,9 +106,11 @@ Comprehensive data structure tracking flow calculation stages.
 - `mean_flow_dollars`, `std_flow_dollars`: Distribution parameters
 - `net_flow_sampled`: Raw Gaussian sample
 - `net_flow_after_sign_constraint`: After Layer 1
-- `net_flow_final`: After Layer 2 (final value)
+- `net_flow_after_magnitude_cap`: After Layer 2
+- `net_flow_final`: After Layer 3 (accepted final value)
+- `rejected_inflow_due_to_aum_constraints`: Positive investor demand not accepted
 - `regime_type`: "positive", "negative", or "zero"
-- `regime_constraint_applied`, `magnitude_cap_applied`: Flags
+- `regime_constraint_applied`, `magnitude_cap_applied`, `aum_acceptance_constraint_applied`: Flags
 
 **Properties**:
 - `flow_as_pct_of_aum`: Final flow as % of AUM
@@ -132,6 +141,8 @@ ENFORCE_REGIME_SIGN = True           # Enable regime constraints
 ZERO_RETURN_TOLERANCE = 0.001        # ±0.1% is "zero"
 MAX_INFLOW_PCT = 1.0                 # 100% AUM max inflow (fund can double)
 MAX_OUTFLOW_PCT = 0.5                # 50% AUM max outflow (fund can halve)
+ENFORCE_AUM_ACCEPTANCE_CONSTRAINTS = True
+MAX_QUARTERLY_AUM_GROWTH_PCT = 0.25  # Final AUM <= 125% of prior quarter-end AUM
 ```
 
 ---
@@ -148,6 +159,10 @@ current_aum = performance_manager.get_fund_aum()
 
 # Get this quarter's return for history tracking
 quarterly_return = performance_manager.get_quarterly_return_percentage(quarter)
+
+# Get deployable strategy capacity and previous quarter-end AUM
+strategy_capacity = strategy_manager.get_portfolio_metrics()['total_capacity']
+previous_quarter_aum = aum_at_start_of_quarter
 
 # Alternative: Get trailing returns directly
 trailing_returns = performance_manager.get_trailing_returns(quarter, quarters=4)
@@ -173,7 +188,9 @@ quarterly_return = performance_manager.get_quarterly_return_percentage(quarter)
 flow_event = investor_flow_manager.process_quarterly_flows(
     current_aum=current_aum,
     quarterly_return=quarterly_return,
-    quarter=quarter
+    quarter=quarter,
+    strategy_capacity=strategy_capacity,
+    previous_quarter_aum=previous_quarter_aum
 )
 
 # Step 3: Update AUM for next capital allocation

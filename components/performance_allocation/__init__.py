@@ -1,9 +1,10 @@
 """
 Performance Allocation Component
 
-This component handles quarterly performance allocation across authors and the
-safety net program. It implements high water mark accounting, management fee
-collection, and profit distribution from iteration_one.
+This component handles quarterly NAV accounting and annual performance
+allocation across authors and the safety net program. It implements
+cohort-level high water mark accounting, management fee collection, and profit
+distribution.
 
 Main classes:
 - PerformanceAllocationManager: Main orchestrator for performance allocation
@@ -11,10 +12,10 @@ Main classes:
 - PerformanceAllocationParameters: Configuration parameters
 
 Key Features:
-- High water mark accounting (no fees during loss recovery)
-- Three-way profit split: 80% fund retention, 16% author performance, 4% safety net
+- Cohort-level high water mark accounting (new capital does not inherit old losses)
+- Annual three-way profit split: 80% fund retention, 10% author performance, 10% safety net
 - Author performance allocation based on strategy ownership splits
-- Safety net program ensuring $4M lifetime minimum for contributing authors
+- Safety net program ensuring $1M lifetime minimum for contributing authors
 - Management fee collection (0.25% quarterly)
 """
 

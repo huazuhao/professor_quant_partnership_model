@@ -10,7 +10,8 @@ Algorithm:
     3. Sample from Gaussian: Flow ~ N(μ, σ)
     4. Apply Layer 1 (regime sign constraint)
     5. Apply Layer 2 (magnitude caps)
-    6. Return FlowEvent with complete details
+    6. Apply Layer 3 (AUM acceptance constraints on positive inflows)
+    7. Return FlowEvent with complete details
 """
 
 from typing import Dict, List, Optional, Tuple
@@ -26,6 +27,7 @@ class InvestorFlowManager:
     Implements performance-based flow logic with two-layer clipping:
     - Layer 1: Regime sign constraint (positive returns → no outflows)
     - Layer 2: Magnitude caps (max ±10% AUM)
+    - Layer 3: AUM acceptance constraints (strategy capacity and growth pace)
     """
 
     def __init__(self):
@@ -37,7 +39,9 @@ class InvestorFlowManager:
         self,
         current_aum: float,
         quarterly_return: float,
-        quarter: int
+        quarter: int,
+        strategy_capacity: Optional[float] = None,
+        previous_quarter_aum: Optional[float] = None
     ) -> FlowEvent:
         """
         Process quarterly investor flows based on trailing performance.
@@ -46,6 +50,8 @@ class InvestorFlowManager:
             current_aum: Current fund AUM before flows ($M)
             quarterly_return: This quarter's return (decimal, e.g., 0.05 = 5%)
             quarter: Current quarter number
+            strategy_capacity: Total deployable strategy capacity ($M)
+            previous_quarter_aum: Previous quarter-end AUM after flows ($M)
 
         Returns:
             FlowEvent: Complete flow outcome with all stages tracked
@@ -78,7 +84,22 @@ class InvestorFlowManager:
             net_flow_sign_constrained, current_aum
         )
 
-        # Step 8: Create flow event
+        # Step 8: Apply Layer 3 - AUM acceptance constraints for positive inflows
+        (
+            constrained_flow,
+            aum_constraint_applied,
+            rejected_inflow,
+            strategy_capacity_cap,
+            quarterly_growth_cap,
+            max_aum_after_constraints
+        ) = self._apply_aum_acceptance_constraints(
+            net_flow_final,
+            current_aum,
+            strategy_capacity,
+            previous_quarter_aum
+        )
+
+        # Step 9: Create flow event
         flow_event = FlowEvent(
             quarter=quarter,
             trailing_4q_returns=trailing_returns,
@@ -90,15 +111,21 @@ class InvestorFlowManager:
             aum_multiplier=aum_multiplier,
             net_flow_sampled=net_flow_sampled,
             net_flow_after_sign_constraint=net_flow_sign_constrained,
-            net_flow_final=net_flow_final,
+            net_flow_after_magnitude_cap=net_flow_final,
+            net_flow_final=constrained_flow,
             aum_before_flow=current_aum,
-            aum_after_flow=current_aum + net_flow_final,
+            aum_after_flow=current_aum + constrained_flow,
             regime_type=regime_type,
             regime_constraint_applied=regime_applied,
-            magnitude_cap_applied=magnitude_applied
+            magnitude_cap_applied=magnitude_applied,
+            aum_acceptance_constraint_applied=aum_constraint_applied,
+            rejected_inflow_due_to_aum_constraints=rejected_inflow,
+            strategy_capacity_cap=strategy_capacity_cap,
+            quarterly_growth_cap=quarterly_growth_cap,
+            max_aum_after_constraints=max_aum_after_constraints
         )
 
-        # Step 9: Store in history
+        # Step 10: Store in history
         self.flow_history[quarter] = flow_event
 
         return flow_event
@@ -329,6 +356,72 @@ class InvestorFlowManager:
         return capped, (capped != net_flow)
 
     # ============================================
+    # HELPER METHODS - LAYER 3: AUM ACCEPTANCE CONSTRAINTS
+    # ============================================
+
+    def _apply_aum_acceptance_constraints(
+        self,
+        net_flow: float,
+        current_aum: float,
+        strategy_capacity: Optional[float],
+        previous_quarter_aum: Optional[float]
+    ) -> Tuple[float, bool, float, Optional[float], Optional[float], Optional[float]]:
+        """
+        Cap accepted positive inflows by capacity and quarterly growth pace.
+
+        This does not force redemptions. If current AUM already exceeds the
+        accepted maximum, positive inflows are set to zero and excess capital
+        remains idle until strategy capacity catches up or investors redeem.
+
+        Returns:
+            (
+                constrained_flow,
+                constraint_applied,
+                rejected_inflow,
+                strategy_capacity_cap,
+                quarterly_growth_cap,
+                max_aum_after_constraints
+            )
+        """
+        if (
+            not IFP.ENFORCE_AUM_ACCEPTANCE_CONSTRAINTS
+            or net_flow <= 0
+        ):
+            return net_flow, False, 0.0, strategy_capacity, None, None
+
+        aum_caps = []
+        strategy_capacity_cap = None
+        quarterly_growth_cap = None
+
+        if strategy_capacity is not None:
+            strategy_capacity_cap = max(0.0, strategy_capacity)
+            aum_caps.append(strategy_capacity_cap)
+
+        if previous_quarter_aum is not None:
+            quarterly_growth_cap = (
+                previous_quarter_aum
+                * (1.0 + IFP.MAX_QUARTERLY_AUM_GROWTH_PCT)
+            )
+            aum_caps.append(quarterly_growth_cap)
+
+        if not aum_caps:
+            return net_flow, False, 0.0, strategy_capacity_cap, quarterly_growth_cap, None
+
+        max_aum_after_constraints = min(aum_caps)
+        max_accepted_inflow = max(0.0, max_aum_after_constraints - current_aum)
+        constrained_flow = min(net_flow, max_accepted_inflow)
+        rejected_inflow = max(0.0, net_flow - constrained_flow)
+
+        return (
+            constrained_flow,
+            constrained_flow != net_flow,
+            rejected_inflow,
+            strategy_capacity_cap,
+            quarterly_growth_cap,
+            max_aum_after_constraints
+        )
+
+    # ============================================
     # QUERY METHODS
     # ============================================
 
@@ -358,7 +451,9 @@ class InvestorFlowManager:
                 'avg_flow_pct': 0.0,
                 'total_net_flows': 0.0,
                 'regime_constraint_count': 0,
-                'magnitude_cap_count': 0
+                'magnitude_cap_count': 0,
+                'aum_acceptance_constraint_count': 0,
+                'total_rejected_inflows': 0.0
             }
 
         total_quarters = len(self.flow_history)
@@ -368,6 +463,13 @@ class InvestorFlowManager:
         )
         magnitude_caps = sum(
             1 for event in self.flow_history.values() if event.magnitude_cap_applied
+        )
+        aum_acceptance_constraints = sum(
+            1 for event in self.flow_history.values() if event.aum_acceptance_constraint_applied
+        )
+        total_rejected_inflows = sum(
+            event.rejected_inflow_due_to_aum_constraints
+            for event in self.flow_history.values()
         )
 
         # Calculate average flow as % of AUM
@@ -383,5 +485,8 @@ class InvestorFlowManager:
             'regime_constraint_count': regime_constraints,
             'regime_constraint_rate': regime_constraints / total_quarters,
             'magnitude_cap_count': magnitude_caps,
-            'magnitude_cap_rate': magnitude_caps / total_quarters
+            'magnitude_cap_rate': magnitude_caps / total_quarters,
+            'aum_acceptance_constraint_count': aum_acceptance_constraints,
+            'aum_acceptance_constraint_rate': aum_acceptance_constraints / total_quarters,
+            'total_rejected_inflows': total_rejected_inflows
         }

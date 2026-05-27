@@ -1,9 +1,9 @@
 """
 Allocation Summary data structure for Performance Allocation Component.
 
-This module provides comprehensive tracking and reporting for quarterly
-performance allocation outcomes, including profit distribution, author payments,
-and safety net operations.
+This module provides tracking and reporting for quarterly NAV accounting and
+annual performance allocation outcomes, including profit distribution, author
+payments, and safety net operations.
 """
 
 from dataclasses import dataclass, field
@@ -13,7 +13,7 @@ from typing import Dict, List, Any, Optional
 @dataclass
 class AllocationSummary:
     """
-    Comprehensive data structure tracking quarterly performance allocation outcomes.
+    Comprehensive data structure tracking quarterly accounting outcomes.
 
     Tracks the complete flow from strategy returns through high water mark accounting
     to final distribution among fund, authors, and safety net program.
@@ -37,8 +37,8 @@ class AllocationSummary:
 
     # Three-way profit distribution
     fund_retention: float           # ~80% of distributable profits
-    author_performance_total: float # ~16% of distributable profits
-    safety_net_total: float        # ~4% of distributable profits
+    author_performance_total: float # ~10% of distributable profits
+    safety_net_total: float        # ~10% of distributable profits
 
     # Detailed allocation tracking
     allocation_by_author: Dict[str, float] = field(default_factory=dict)  # Performance allocations

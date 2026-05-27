@@ -160,16 +160,15 @@ class Strategy:
         if self.max_capacity >= SP.STRATEGY_MAX_CAPACITY_ABSOLUTE:
             return False
 
-        # Calculate improvement multiplier (inverse to current capacity)
-        improvement_factor = random.uniform(
+        # Capacity projects add a fixed deployable-capital increment.
+        improvement_amount = random.uniform(
             SP.STRATEGY_CAPACITY_IMPROVEMENT_FACTOR_MIN,
             SP.STRATEGY_CAPACITY_IMPROVEMENT_FACTOR_MAX
         )
-        capacity_multiplier = 1 + (improvement_factor / self.max_capacity)
 
         # Apply improvement with cap
         new_capacity = min(
-            self.max_capacity * capacity_multiplier,
+            self.max_capacity + improvement_amount,
             SP.STRATEGY_MAX_CAPACITY_ABSOLUTE
         )
 

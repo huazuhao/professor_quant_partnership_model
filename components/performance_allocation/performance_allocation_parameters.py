@@ -3,14 +3,14 @@ Performance Allocation Component Parameters
 
 This module contains all tunable parameters for the Performance Allocation Component.
 These parameters control management fees, performance allocation, and safety net operations.
-All values match iteration_one config.py exactly.
+Values are expressed for the quarterly economic simulation.
 """
 
 
 class PerformanceAllocationParameters:
     """
     Central configuration for Performance Allocation Component.
-    All values match iteration_one config.py exactly.
+    Central configuration for the quarterly economic simulation.
     """
 
     # ============================================
@@ -27,8 +27,9 @@ class PerformanceAllocationParameters:
     # PERFORMANCE ALLOCATION PARAMETERS
     # ============================================
     PERFORMANCE_ALLOCATION = 0.2  # 20% of profits to authors
-    AUTHOR_SAFETY_NET_RATIO = 0.2  # 20% of author allocation to safety net
+    AUTHOR_SAFETY_NET_RATIO = 0.5  # 50% of author allocation to safety net
     AUTHOR_GUARANTEED_RETURN = 1.0  # $1M lifetime minimum (millions)
+    PERFORMANCE_CRYSTALLIZATION_QUARTERS = 4  # Annual crystallization
 
     # ============================================
     # DERIVED CONSTANTS (computed from above)
