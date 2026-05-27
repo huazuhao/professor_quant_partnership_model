@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900" role="img" aria-labelledby="title desc">
   <title id="title">Current simulated accounting</title>
-  <desc id="desc">A vertical diagram of the simulated fund accounting: quarterly NAV, management fee, investor high-water mark, 20 percent performance pool, direct author payout, and safety-net payout.</desc>
+  <desc id="desc">A vertical diagram of the simulated fund accounting: quarterly NAV, management fee, investor high-water mark, 20 percent performance pool, strategy-professor payout, and safety-net payout.</desc>
   <defs>
     <marker id="arrow" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto">
       <path d="M2,2 L12,7 L2,12" fill="none" stroke="#111827" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
@@ -74,7 +74,7 @@
 
   <g transform="translate(70 735)">
     <rect class="card blue" x="0" y="0" width="340" height="104" rx="16"/>
-    <text class="label" x="22" y="36">Direct authors</text>
+    <text class="label" x="22" y="36">Strategy professors</text>
     <text class="metric" x="22" y="76">50%</text>
     <text class="body" x="105" y="70">of performance pool</text>
     <text class="body" x="22" y="94">Paid by strategy ownership weights</text>
@@ -85,8 +85,8 @@
     <text class="label" x="22" y="36">Safety net</text>
     <text class="metric" x="22" y="76">50%</text>
     <text class="body" x="105" y="70">of performance pool</text>
-    <text class="body" x="22" y="94">Capped by each author's gap to $1M</text>
+    <text class="body" x="22" y="94">Capped by each professor's gap to $1M</text>
   </g>
 
-  <text class="small" x="70" y="875">Eligible profits after HWM: 80% fund/investors, 10% direct authors, 10% safety net.</text>
+  <text class="small" x="70" y="875">Eligible profits after HWM: 80% fund/investors, 10% strategy professors, 10% safety net.</text>
 </svg>

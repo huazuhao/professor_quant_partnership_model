@@ -10,6 +10,8 @@ In the current simulation, this loop can start with $20M of initial capital and 
 
 ![Professor-led quant research funding loop](assets/funding_loop.svg)
 
+[Download the PDF overview](professor_quant_partnership_model_overview.pdf)
+
 ## The One-Minute Version
 
 - Professors contribute the core research hedge funds need: math, statistics, optimization, modeling, simulation, and rigorous empirical testing.
@@ -34,7 +36,7 @@ Current baseline assumptions:
 - Direct strategy-owner payout: `50%` of the performance pool
 - Safety-net payout: `50%` of the performance pool
 - Safety-net threshold: `$1M` lifetime cumulative compensation per eligible contributor
-- Active author hiring target: about one active research author per `$45M` of AUM
+- Active professor research target: about one active strategy professor per `$45M` of AUM
 - New strategy birth capacity: `$10M-$50M`
 - Absolute capacity per strategy: `$100M`
 
@@ -45,23 +47,23 @@ The current baseline batch run uses `100` paths, `40` quarters, and seed `42`.
 | Metric | Median / Current Baseline Result |
 | --- | ---: |
 | Final fund AUM after 10 years | about `$1.27B` |
-| Total authors after 10 years | `138.5` median |
-| Five-year author compensation | `$1.34M` median |
-| Five-year author compensation, p75 | `$1.63M` |
-| Five-year author compensation, p90 | `$2.00M` |
+| Professors/labs after 10 years | `138.5` median |
+| Five-year professor/lab compensation | `$1.34M` median |
+| Five-year professor/lab compensation, p75 | `$1.63M` |
+| Five-year professor/lab compensation, p90 | `$2.00M` |
 | `$100` reference investment ending value | `$302.52` median |
 
 These are simulation outputs, not forecasts. The purpose is to test whether the economic loop is internally coherent and whether the scale of the research-funding impact is large enough to justify deeper investigation.
 
 ## Simulation Charts
 
-| Investor outcome | Author compensation |
+| Investor outcome | Professor/lab compensation |
 | --- | --- |
 | ![Investment value distribution](batch_plot1_investment_value_distribution.png) | ![Five-year compensation distribution](batch_plot2_5year_compensation_distribution.png) |
 
-| Final AUM | Total authors | Paid authors |
+| Final AUM | Total professors/labs | Paid professors/labs |
 | --- | --- | --- |
-| ![Final AUM distribution](batch_plot3_final_aum_distribution.png) | ![Total author count distribution](batch_plot4_total_author_count_distribution.png) | ![Paid author count distribution](batch_plot5_paid_author_count_distribution.png) |
+| ![Final AUM distribution](batch_plot3_final_aum_distribution.png) | ![Total professor/lab count distribution](batch_plot4_total_author_count_distribution.png) | ![Paid professor/lab count distribution](batch_plot5_paid_author_count_distribution.png) |
 
 ## What The Model Simulates
 
@@ -70,7 +72,7 @@ The simulation is built from several interacting components:
 - `strategy_lifecycle`: strategy invention, decay, capacity limits, and capacity improvements
 - `author_collaboration`: professor research cycles, strategy invention, strategy improvement, and ownership assignment
 - `capital_allocation`: capital deployment across available strategies
-- `performance_allocation`: management fees, investor high-water marks, annual crystallization, withdrawal crystallization, author payouts, and safety-net payouts
+- `performance_allocation`: management fees, investor high-water marks, annual crystallization, withdrawal crystallization, professor/lab payouts, and safety-net payouts
 - `investor_flow`: subscriptions, withdrawals, AUM growth limits, and capacity-aware inflow acceptance
 - `external_shock`: crisis events and market stress
 
@@ -80,10 +82,10 @@ The model separates three important strategy concepts:
 - current strategy capacity: how much capital the strategy can currently accept
 - absolute strategy capacity: a hard ceiling no single strategy can exceed
 
-It also separates two author concepts:
+It also separates two professor-contributor concepts:
 
-- active sabbatical authors: currently available to invent or improve strategies
-- safety-net authors: cumulative contributors who may still be eligible for compensation
+- active sabbatical professors: currently available to invent or improve strategies
+- safety-net professor contributors: cumulative contributors who may still be eligible for compensation
 
 ## Run The Simulation
 
