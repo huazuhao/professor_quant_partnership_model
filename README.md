@@ -132,4 +132,4 @@ venv/bin/python -m unittest discover -s tests
 
 ## Important Caveat
 
-This is an economic simulation and proposal model. It is not investment advice, a fundraising document, or a live trading system. The goal is to make the assumptions explicit, test the accounting logic, and estimate whether a professor-led quant research partnership could plausibly become a meaningful alternative funding source for university labs.
+This is an economic simulation and proposal model. It is not investment advice or a live trading system. The goal is to make the assumptions explicit, test the accounting logic, and estimate whether a professor-led quant research partnership could plausibly become a meaningful alternative funding source for university labs.
