@@ -130,21 +130,63 @@ def add_title_page(pdf):
         color=COLORS["muted"],
     )
 
-    intro = (
-        "University labs in mathematics, statistics, optimization, simulation, computational modeling, "
-        "and related STEM fields already have the talent systematic hedge funds rely on. The old "
-        "bottleneck was implementation: turning a research idea into clean data, backtests, diagnostics, "
-        "risk controls, deployment code, and monitoring usually took more engineering time than a short "
-        "sabbatical could support."
-    )
-    add_text(ax, 0.08, 0.84, intro, size=11.5, color=COLORS["muted"], width=92)
+    readme_intro = [
+        (
+            "This repository studies a new research-lab funding model made possible by the rapid "
+            "improvement of LLM coding."
+        ),
+        (
+            "University labs in mathematics, statistics, optimization, simulation, computational "
+            "modeling, and related STEM fields already have the talent systematic hedge funds rely on. "
+            "The old bottleneck was implementation: turning a research idea into clean data, backtests, "
+            "diagnostics, risk controls, deployment code, and monitoring usually took more engineering "
+            "time than a short sabbatical or research leave could support."
+        ),
+        (
+            "LLM-assisted coding changes that. A 6-12 month sabbatical or one-year leave can now be "
+            "enough for professors to help invent or improve systematic trading strategies. If validated "
+            "strategies are traded, part of the profits can fund the contributing labs over the following years."
+        ),
+        (
+            "In the current simulation, this loop can start with $20M of initial capital and grow into a "
+            "$1B+ fund. The median 10-year investor outcome is about 3x capital, roughly 140-150 professors "
+            "or labs participate, and five-year lab compensation is above $1M at the median."
+        ),
+    ]
+    y = 0.83
+    for idx, paragraph in enumerate(readme_intro):
+        add_text(
+            ax,
+            0.08,
+            y,
+            paragraph,
+            size=12.5 if idx == 0 else 11.7,
+            weight="bold" if idx == 3 else "normal",
+            color=COLORS["teal"] if idx == 3 else COLORS["muted"],
+            width=92,
+        )
+        y -= 0.095 if idx in (0, 2) else 0.155
 
-    punch = (
-        "In the current simulation, the loop starts with $20M of initial capital and can grow into a "
-        "$1B+ fund. The median 10-year investor outcome is about 3x capital, roughly 140-150 professors "
-        "or labs participate, and five-year lab compensation is above $1M at the median."
+    add_text(ax, 0.08, 0.19, "What the simulation tests", size=15, weight="bold")
+    add_text(
+        ax,
+        0.08,
+        0.16,
+        "Whether focused professor research, LLM-accelerated implementation, fund infrastructure, "
+        "strategy profits, and recurring lab support can become a large alternative funding channel "
+        "for universities.",
+        size=11.5,
+        color=COLORS["muted"],
+        width=92,
     )
-    add_text(ax, 0.08, 0.73, punch, size=13.0, weight="bold", color=COLORS["teal"], width=88)
+    pdf.savefig(fig, bbox_inches="tight")
+    plt.close(fig)
+
+
+def add_funding_loop_page(pdf):
+    fig, ax = new_page()
+    add_text(ax, 0.08, 0.94, "The Funding Loop", size=23, weight="bold")
+    add_text(ax, 0.08, 0.90, "A short research leave becomes strategy development, fund infrastructure, and recurring lab support.", size=12, color=COLORS["muted"])
 
     y = 0.52
     add_box(ax, 0.07, y, 0.18, 0.11, "Professors", "Math, stats, optimization, simulation", COLORS["blue"])
@@ -160,19 +202,6 @@ def add_title_page(pdf):
     add_arrow(ax, (0.855, y), (0.73, 0.40), rad=0.2)
     add_arrow(ax, (0.58, 0.34), (0.45, 0.34))
     add_arrow(ax, (0.18, 0.34), (0.13, y), rad=-0.25)
-
-    add_text(ax, 0.08, 0.16, "What the simulation tests", size=15, weight="bold")
-    add_text(
-        ax,
-        0.08,
-        0.13,
-        "Whether focused professor research, LLM-accelerated implementation, fund infrastructure, "
-        "strategy profits, and recurring lab support can become a large alternative funding channel "
-        "for universities.",
-        size=11.5,
-        color=COLORS["muted"],
-        width=92,
-    )
     pdf.savefig(fig, bbox_inches="tight")
     plt.close(fig)
 
@@ -230,31 +259,23 @@ def add_results_page(pdf):
         ("Five-year compensation, p90", "$2.00M"),
         ("$100 reference investment ending value", "$302.52 median"),
     ]
-    x0, y0, w, row_h = 0.10, 0.78, 0.80, 0.065
-    ax.add_patch(
-        FancyBboxPatch(
-            (x0, y0),
-            w,
-            row_h,
-            boxstyle="round,pad=0.006,rounding_size=0.01",
-            facecolor=COLORS["green"],
-            edgecolor=COLORS["line"],
-            linewidth=1.2,
-        )
-    )
-    add_text(ax, x0 + 0.025, y0 + 0.043, "Metric", size=12, weight="bold")
-    add_text(ax, x0 + 0.54, y0 + 0.043, "Current baseline result", size=12, weight="bold")
+    x0, y0, w, row_h = 0.08, 0.80, 0.84, 0.072
+    left_w = 0.54
+    right_x = x0 + left_w + 0.03
+    ax.add_patch(FancyBboxPatch((x0, y0), w, row_h, boxstyle="square,pad=0", facecolor=COLORS["green"], edgecolor=COLORS["line"], linewidth=1.1))
+    add_text(ax, x0 + 0.025, y0 + row_h / 2, "Metric", size=12, weight="bold", va="center")
+    add_text(ax, right_x, y0 + row_h / 2, "Current baseline result", size=12, weight="bold", va="center")
     for i, (metric, value) in enumerate(rows):
         yrow = y0 - (i + 1) * row_h
         fill = "#ffffff" if i % 2 == 0 else "#f8fafc"
         ax.add_patch(FancyBboxPatch((x0, yrow), w, row_h, boxstyle="square,pad=0", facecolor=fill, edgecolor="#d1d5db", linewidth=0.8))
-        add_text(ax, x0 + 0.025, yrow + 0.043, metric, size=11, color=COLORS["muted"])
-        add_text(ax, x0 + 0.54, yrow + 0.043, value, size=11.5, weight="bold")
-    add_text(ax, 0.08, 0.13, "Interpretation", size=15, weight="bold")
+        add_text(ax, x0 + 0.025, yrow + row_h / 2, metric, size=11.2, color=COLORS["muted"], va="center")
+        add_text(ax, right_x, yrow + row_h / 2, value, size=11.5, weight="bold", va="center")
+    add_text(ax, 0.08, 0.12, "Interpretation", size=15, weight="bold")
     add_text(
         ax,
         0.08,
-        0.10,
+        0.09,
         "These are simulation outputs, not forecasts. The purpose is to test whether the economic loop "
         "is internally coherent and whether the scale of the research-funding impact is large enough to "
         "justify deeper investigation.",
@@ -266,21 +287,16 @@ def add_results_page(pdf):
     plt.close(fig)
 
 
-def add_chart_page(pdf):
+def add_chart_page(pdf, image_path: str, title: str):
     fig, ax = new_page()
-    add_text(ax, 0.08, 0.94, "Selected Simulation Charts", size=23, weight="bold")
-    add_text(ax, 0.08, 0.90, "Investor and fund-scale distributions. The repository contains the full chart set.", size=12, color=COLORS["muted"])
-    charts = [
-        ("batch_plot1_investment_value_distribution.png", "Investor outcome distribution", [0.08, 0.50, 0.84, 0.34]),
-        ("batch_plot3_final_aum_distribution.png", "Final fund AUM distribution", [0.08, 0.10, 0.84, 0.34]),
-    ]
-    for image_path, title, bbox in charts:
-        path = Path(image_path)
-        if path.exists():
-            add_text(ax, bbox[0], bbox[1] + bbox[3] + 0.025, title, size=14, weight="bold")
-            image_ax = fig.add_axes(bbox)
-            image_ax.imshow(plt.imread(path))
-            image_ax.axis("off")
+    add_text(ax, 0.08, 0.94, title, size=23, weight="bold")
+    path = Path(image_path)
+    if path.exists():
+        image_ax = fig.add_axes([0.06, 0.34, 0.88, 0.40])
+        image_ax.imshow(plt.imread(path))
+        image_ax.axis("off")
+    else:
+        add_text(ax, 0.08, 0.82, f"Missing chart: {image_path}", size=12, color=COLORS["muted"])
     pdf.savefig(fig, bbox_inches="tight")
     plt.close(fig)
 
@@ -288,9 +304,14 @@ def add_chart_page(pdf):
 def main():
     with PdfPages(OUTPUT_PATH) as pdf:
         add_title_page(pdf)
+        add_funding_loop_page(pdf)
         add_accounting_page(pdf)
         add_results_page(pdf)
-        add_chart_page(pdf)
+        add_chart_page(pdf, "batch_plot1_investment_value_distribution.png", "Chart 1: Investor Outcome Distribution")
+        add_chart_page(pdf, "batch_plot2_5year_compensation_distribution.png", "Chart 2: Five-Year Professor/Lab Compensation")
+        add_chart_page(pdf, "batch_plot3_final_aum_distribution.png", "Chart 3: Final Fund AUM")
+        add_chart_page(pdf, "batch_plot4_total_author_count_distribution.png", "Chart 4: Total Professors/Labs")
+        add_chart_page(pdf, "batch_plot5_paid_author_count_distribution.png", "Chart 5: Paid Professors/Labs")
     print(f"Wrote {OUTPUT_PATH.resolve()}")
 
 
