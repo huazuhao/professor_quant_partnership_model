@@ -94,5 +94,8 @@
   <path class="arrow" d="M704,471 C620,500 560,498 485,472"/>
   <path class="arrow" d="M178,470 C102,430 75,355 116,304"/>
 
-  <text class="subtitle" x="347" y="594">Simulation goal: test whether this loop can become a large, repeatable alternative funding channel for university research labs.</text>
+  <text class="subtitle" x="60" y="592">
+    <tspan x="60" dy="0">Simulation goal: test whether this loop can become a large, repeatable alternative funding channel</tspan>
+    <tspan x="60" dy="24">for university research labs.</tspan>
+  </text>
 </svg>
