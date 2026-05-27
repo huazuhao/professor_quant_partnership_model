@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="590" viewBox="0 0 1200 590" role="img" aria-labelledby="title desc">
-  <title id="title">Current simulated fee and payout accounting</title>
-  <desc id="desc">A diagram showing the current simulation accounting: quarterly management fee, high-water-mark performance pool, 50 percent direct author allocation, and 50 percent safety net.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900" role="img" aria-labelledby="title desc">
+  <title id="title">Current simulated accounting</title>
+  <desc id="desc">A vertical diagram of the simulated fund accounting: quarterly NAV, management fee, investor high-water mark, 20 percent performance pool, direct author payout, and safety-net payout.</desc>
   <defs>
     <marker id="arrow" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto">
       <path d="M2,2 L12,7 L2,12" fill="none" stroke="#111827" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
@@ -10,20 +10,19 @@
     </filter>
     <style>
       .bg { fill: #fbfcfd; }
-      .title { font: 700 31px Arial, Helvetica, sans-serif; fill: #111827; }
-      .subtitle { font: 400 17px Arial, Helvetica, sans-serif; fill: #374151; }
-      .card { fill: #ffffff; stroke: #1f2937; stroke-width: 2.4; filter: url(#shadow); }
+      .title { font: 700 30px Arial, Helvetica, sans-serif; fill: #111827; }
+      .subtitle { font: 400 16px Arial, Helvetica, sans-serif; fill: #374151; }
+      .card { stroke: #1f2937; stroke-width: 2.3; filter: url(#shadow); }
       .blue { fill: #e8f2ff; }
       .green { fill: #eaf8ef; }
       .yellow { fill: #fff4d7; }
       .red { fill: #ffecec; }
       .violet { fill: #f1efff; }
-      .label { font: 700 22px Arial, Helvetica, sans-serif; fill: #111827; }
+      .label { font: 700 21px Arial, Helvetica, sans-serif; fill: #111827; }
       .body { font: 400 15px Arial, Helvetica, sans-serif; fill: #374151; }
-      .metric { font: 700 30px Arial, Helvetica, sans-serif; fill: #111827; }
+      .metric { font: 700 31px Arial, Helvetica, sans-serif; fill: #111827; }
       .small { font: 400 13px Arial, Helvetica, sans-serif; fill: #4b5563; }
-      .arrow { fill: none; stroke: #111827; stroke-width: 2.7; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#arrow); }
-      .divider { stroke: #111827; stroke-width: 2.2; stroke-linecap: round; stroke-dasharray: 7 7; }
+      .arrow { fill: none; stroke: #111827; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#arrow); }
       .bar-bg { fill: #e5e7eb; }
       .bar-a { fill: #2563eb; }
       .bar-b { fill: #0f766e; }
@@ -31,72 +30,63 @@
     </style>
   </defs>
 
-  <rect class="bg" width="1200" height="590"/>
+  <rect class="bg" width="900" height="900"/>
 
-  <text class="title" x="60" y="62">Current simulated accounting</text>
-  <text class="subtitle" x="60" y="94">Investor protection first: performance compensation is paid only on eligible profits above net high-water marks.</text>
+  <text class="title" x="70" y="58">Current simulated accounting</text>
+  <text class="subtitle" x="70" y="90">Performance compensation is paid only after investor drawdowns are recovered.</text>
 
-  <g transform="translate(70 150)">
-    <rect class="card blue" x="0" y="0" width="250" height="145" rx="18"/>
-    <text class="label" x="24" y="40">Quarterly NAV</text>
-    <text class="body" x="24" y="72">Strategies produce net</text>
-    <text class="body" x="24" y="94">trading profit or loss.</text>
-    <text class="body" x="24" y="116">Losses reduce NAV first.</text>
+  <g transform="translate(110 125)">
+    <rect class="card blue" x="0" y="0" width="680" height="92" rx="16"/>
+    <text class="label" x="24" y="36">Quarterly fund NAV</text>
+    <text class="body" x="24" y="66">Strategies produce net trading P&amp;L. Losses reduce NAV first.</text>
   </g>
 
-  <g transform="translate(385 150)">
-    <rect class="card yellow" x="0" y="0" width="250" height="145" rx="18"/>
-    <text class="label" x="24" y="40">Management fee</text>
-    <text class="metric" x="24" y="83">0.25%</text>
-    <text class="body" x="24" y="112">charged quarterly</text>
+  <path class="arrow" d="M450,220 L450,251"/>
+
+  <g transform="translate(110 255)">
+    <rect class="card yellow" x="0" y="0" width="680" height="92" rx="16"/>
+    <text class="label" x="24" y="36">Management fee</text>
+    <text class="metric" x="24" y="74">0.25%</text>
+    <text class="body" x="135" y="67">charged quarterly</text>
   </g>
 
-  <g transform="translate(700 150)">
-    <rect class="card green" x="0" y="0" width="330" height="145" rx="18"/>
-    <text class="label" x="24" y="40">High-water mark test</text>
-    <text class="body" x="24" y="72">Investor cohorts must recover</text>
-    <text class="body" x="24" y="94">drawdowns before performance</text>
-    <text class="body" x="24" y="116">allocation is calculated.</text>
+  <path class="arrow" d="M450,350 L450,381"/>
+
+  <g transform="translate(110 385)">
+    <rect class="card green" x="0" y="0" width="680" height="104" rx="16"/>
+    <text class="label" x="24" y="36">Investor high-water mark test</text>
+    <text class="body" x="24" y="66">Investor cohorts must recover prior drawdowns.</text>
+    <text class="body" x="24" y="88">No performance allocation is paid below net HWM.</text>
   </g>
 
-  <path class="arrow" d="M326,222 C345,222 360,222 381,222"/>
-  <path class="arrow" d="M641,222 C662,222 676,222 696,222"/>
+  <path class="arrow" d="M450,492 L450,523"/>
 
-  <g transform="translate(160 385)">
-    <rect class="card violet" x="0" y="0" width="335" height="125" rx="18"/>
-    <text class="label" x="24" y="40">Performance pool</text>
-    <text class="metric" x="24" y="83">20%</text>
-    <text class="body" x="100" y="78">of eligible above-HWM</text>
-    <text class="body" x="100" y="100">profits at crystallization</text>
+  <g transform="translate(155 527)">
+    <rect class="card violet" x="0" y="0" width="590" height="102" rx="16"/>
+    <text class="label" x="24" y="36">Performance pool</text>
+    <text class="metric" x="24" y="77">20%</text>
+    <text class="body" x="105" y="66">of eligible above-HWM profits</text>
+    <text class="body" x="105" y="88">at annual or withdrawal crystallization</text>
   </g>
 
-  <g transform="translate(585 350)">
-    <rect class="card blue" x="0" y="0" width="250" height="160" rx="18"/>
-    <text class="label" x="24" y="38">Direct authors</text>
-    <text class="metric" x="24" y="82">50%</text>
-    <text class="body" x="24" y="112">paid by strategy</text>
-    <text class="body" x="24" y="134">ownership weights</text>
+  <path class="arrow" d="M450,632 C390,684 300,704 240,728"/>
+  <path class="arrow" d="M450,632 C510,684 600,704 660,728"/>
+
+  <g transform="translate(70 735)">
+    <rect class="card blue" x="0" y="0" width="340" height="104" rx="16"/>
+    <text class="label" x="22" y="36">Direct authors</text>
+    <text class="metric" x="22" y="76">50%</text>
+    <text class="body" x="105" y="70">of performance pool</text>
+    <text class="body" x="22" y="94">Paid by strategy ownership weights</text>
   </g>
 
-  <g transform="translate(885 350)">
-    <rect class="card red" x="0" y="0" width="250" height="160" rx="18"/>
-    <text class="label" x="24" y="38">Safety net</text>
-    <text class="metric" x="24" y="82">50%</text>
-    <text class="body" x="24" y="112">capped at each author's</text>
-    <text class="body" x="24" y="134">remaining gap to $1M</text>
+  <g transform="translate(490 735)">
+    <rect class="card red" x="0" y="0" width="340" height="104" rx="16"/>
+    <text class="label" x="22" y="36">Safety net</text>
+    <text class="metric" x="22" y="76">50%</text>
+    <text class="body" x="105" y="70">of performance pool</text>
+    <text class="body" x="22" y="94">Capped by each author's gap to $1M</text>
   </g>
 
-  <path class="arrow" d="M862,298 C820,343 690,354 548,406"/>
-  <path class="arrow" d="M499,448 C532,440 552,434 581,425"/>
-  <path class="arrow" d="M499,448 C628,494 755,512 880,438"/>
-
-  <line class="divider" x1="750" y1="338" x2="750" y2="526"/>
-
-  <g transform="translate(70 535)">
-    <rect class="bar-bg" x="0" y="0" width="1060" height="15" rx="7"/>
-    <rect class="bar-a" x="0" y="0" width="530" height="15" rx="7"/>
-    <rect class="bar-b" x="530" y="0" width="265" height="15"/>
-    <rect class="bar-c" x="795" y="0" width="265" height="15" rx="7"/>
-    <text class="small" x="0" y="34">Eligible profits after HWM: 80% remains with fund/investors, 10% direct author payout, 10% safety-net payout.</text>
-  </g>
+  <text class="small" x="70" y="875">Eligible profits after HWM: 80% fund/investors, 10% direct authors, 10% safety net.</text>
 </svg>
