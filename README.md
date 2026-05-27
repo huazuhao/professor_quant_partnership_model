@@ -44,8 +44,6 @@ The current baseline batch run uses `100` paths, `40` quarters, and seed `42`.
 | --- | ---: |
 | Final fund AUM after 10 years | about `$1.27B` |
 | Total authors after 10 years | `138.5` median |
-| Paid authors after 10 years | `120` median |
-| Author payment rate | `90.7%` |
 | Five-year author compensation | `$1.34M` median |
 | Five-year author compensation, p75 | `$1.63M` |
 | Five-year author compensation, p90 | `$2.00M` |
