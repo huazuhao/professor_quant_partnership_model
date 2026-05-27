@@ -35,7 +35,7 @@ Current baseline assumptions:
 - Crystallization: annually, with interim crystallization on withdrawals
 - Direct strategy-owner payout: `50%` of the performance pool
 - Safety-net payout: `50%` of the performance pool
-- Safety-net threshold: `$1M` lifetime cumulative compensation per eligible contributor
+- Safety-net guarantee: up to `$1M` cumulative support per eligible professor/lab
 - Active professor research target: about one active strategy professor per `$45M` of AUM
 - New strategy birth capacity: `$10M-$50M`
 - Absolute capacity per strategy: `$100M`

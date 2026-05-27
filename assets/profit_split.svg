@@ -85,7 +85,7 @@
     <text class="label" x="22" y="36">Safety net</text>
     <text class="metric" x="22" y="76">50%</text>
     <text class="body" x="105" y="70">of performance pool</text>
-    <text class="body" x="22" y="94">Capped by each professor's gap to $1M</text>
+    <text class="body" x="22" y="94">Guarantees up to $1M support</text>
   </g>
 
   <text class="small" x="70" y="875">Eligible profits after HWM: 80% fund/investors, 10% strategy professors, 10% safety net.</text>
