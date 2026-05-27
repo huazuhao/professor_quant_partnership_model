@@ -30,7 +30,10 @@
 
   <text class="title" x="60" y="62">A new lab-funding loop opened by LLM coding</text>
   <text class="subtitle" x="60" y="94">The research talent already existed. The missing piece was fast, reliable implementation.</text>
-  <text class="note" x="60" y="125">Not practically scalable six months ago. Plausible now because LLMs reduce the coding bottleneck.</text>
+  <text class="note" x="60" y="123">
+    <tspan x="60" dy="0">Not practically scalable six months ago.</tspan>
+    <tspan x="60" dy="23">Plausible now because LLMs reduce the coding bottleneck.</tspan>
+  </text>
 
   <g transform="translate(55 175)">
     <rect class="box box-a" x="0" y="0" width="210" height="125" rx="18"/>
