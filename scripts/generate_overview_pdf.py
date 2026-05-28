@@ -16,6 +16,7 @@ from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 
 
 OUTPUT_PATH = Path("professor_quant_partnership_model_overview.pdf")
+LETTER_SIZE = (8.5, 11)
 
 COLORS = {
     "ink": "#111827",
@@ -44,12 +45,17 @@ def escape_text(value: str) -> str:
 
 
 def new_page():
-    fig = plt.figure(figsize=(8.5, 11), facecolor="white")
+    fig = plt.figure(figsize=LETTER_SIZE, facecolor="white")
     ax = fig.add_axes([0, 0, 1, 1])
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
     ax.axis("off")
     return fig, ax
+
+
+def save_page(pdf, fig):
+    pdf.savefig(fig)
+    plt.close(fig)
 
 
 def add_text(
@@ -173,7 +179,7 @@ def add_title_page(pdf):
             size=12.5 if idx == 0 else 11.7,
             weight="bold" if idx == 3 else "normal",
             color=COLORS["teal"] if idx == 3 else COLORS["muted"],
-            width=92,
+            width=76 if idx == 3 else 82,
         )
         y -= 0.095 if idx in (0, 2) else 0.155
 
@@ -187,16 +193,23 @@ def add_title_page(pdf):
         "for universities.",
         size=11.5,
         color=COLORS["muted"],
-        width=92,
+        width=82,
     )
-    pdf.savefig(fig, bbox_inches="tight")
-    plt.close(fig)
+    save_page(pdf, fig)
 
 
 def add_funding_loop_page(pdf):
     fig, ax = new_page()
     add_text(ax, 0.08, 0.94, "The Funding Loop", size=23, weight="bold")
-    add_text(ax, 0.08, 0.90, "A short research leave becomes strategy development, fund infrastructure, and recurring lab support.", size=12, color=COLORS["muted"])
+    add_text(
+        ax,
+        0.08,
+        0.90,
+        "A short research leave becomes strategy development, fund infrastructure, and recurring lab support.",
+        size=12,
+        color=COLORS["muted"],
+        width=82,
+    )
 
     y = 0.52
     add_box(ax, 0.07, y, 0.18, 0.11, "Professors", "Math, stats, optimization, simulation", COLORS["blue"])
@@ -212,8 +225,7 @@ def add_funding_loop_page(pdf):
     add_arrow(ax, (0.855, y), (0.73, 0.40), rad=0.2)
     add_arrow(ax, (0.58, 0.34), (0.45, 0.34))
     add_arrow(ax, (0.18, 0.34), (0.13, y), rad=-0.25)
-    pdf.savefig(fig, bbox_inches="tight")
-    plt.close(fig)
+    save_page(pdf, fig)
 
 
 def add_accounting_page(pdf):
@@ -246,13 +258,12 @@ def add_accounting_page(pdf):
         COLORS["violet"],
         metric="20%",
     )
-    add_arrow(ax, (0.50, 0.275), (0.28, 0.17), rad=-0.12)
-    add_arrow(ax, (0.50, 0.275), (0.72, 0.17), rad=0.12)
-    add_box(ax, 0.08, 0.045, 0.36, 0.125, "Strategy professors", "Strategy ownership payments", COLORS["blue"], metric="50%")
-    add_box(ax, 0.56, 0.045, 0.36, 0.125, "Safety net", "Up to $1M cumulative support", COLORS["red"], metric="50%")
-    add_text(ax, 0.08, 0.018, "Eligible profits after HWM: 80% fund/investors, 10% strategy professors, 10% safety net.", size=10.5, color=COLORS["muted"])
-    pdf.savefig(fig, bbox_inches="tight")
-    plt.close(fig)
+    add_arrow(ax, (0.50, 0.275), (0.28, 0.20), rad=-0.12)
+    add_arrow(ax, (0.50, 0.275), (0.72, 0.20), rad=0.12)
+    add_box(ax, 0.08, 0.075, 0.36, 0.125, "Strategy professors", "Strategy ownership payments", COLORS["blue"], metric="50%")
+    add_box(ax, 0.56, 0.075, 0.36, 0.125, "Safety net", "Up to $1M cumulative support", COLORS["red"], metric="50%")
+    add_text(ax, 0.08, 0.045, "Eligible profits after HWM: 80% fund/investors, 10% strategy professors, 10% safety net.", size=10.5, color=COLORS["muted"])
+    save_page(pdf, fig)
 
 
 def add_results_page(pdf):
@@ -291,15 +302,14 @@ def add_results_page(pdf):
         "justify deeper investigation.",
         size=11.5,
         color=COLORS["muted"],
-        width=92,
+        width=82,
     )
-    pdf.savefig(fig, bbox_inches="tight")
-    plt.close(fig)
+    save_page(pdf, fig)
 
 
 def add_chart_page(pdf, image_path: str, title: str):
     fig, ax = new_page()
-    add_text(ax, 0.08, 0.94, title, size=23, weight="bold")
+    add_text(ax, 0.08, 0.94, title, size=21, weight="bold", width=42)
     path = Path(image_path)
     if path.exists():
         image_ax = fig.add_axes([0.06, 0.34, 0.88, 0.40])
@@ -307,8 +317,7 @@ def add_chart_page(pdf, image_path: str, title: str):
         image_ax.axis("off")
     else:
         add_text(ax, 0.08, 0.82, f"Missing chart: {image_path}", size=12, color=COLORS["muted"])
-    pdf.savefig(fig, bbox_inches="tight")
-    plt.close(fig)
+    save_page(pdf, fig)
 
 
 def main():
