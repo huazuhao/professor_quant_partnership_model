@@ -341,7 +341,7 @@ def generate_batch_plots(final_investment_values: List[float], all_5yr_compensat
     plt.close()
     plot_paths.append(plot4_path)
 
-    # Plot 5: Paid Author Count Distribution
+    # Plot 5: Professor/lab funding count distribution
     fig5, ax5 = plt.subplots(figsize=(12, 7))
 
     # Use integer bins for count data
@@ -383,9 +383,9 @@ def generate_batch_plots(final_investment_values: List[float], all_5yr_compensat
              fontsize=10, verticalalignment='top', horizontalalignment='right',
              bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.9))
 
-    ax5.set_xlabel('Paid Authors at End of Simulation', fontsize=12)
+    ax5.set_xlabel('Professor/Lab Groups Receiving Funding at End of Simulation', fontsize=12)
     ax5.set_ylabel('Number of Simulations', fontsize=12)
-    ax5.set_title(f'Distribution of Paid Author Counts\n({len(paid_authors_list)} simulations)',
+    ax5.set_title(f'Distribution of Professor/Lab Groups Receiving Funding\n({len(paid_authors_list)} simulations)',
                   fontsize=14, fontweight='bold')
     ax5.legend(fontsize=11, loc='upper left')
     ax5.grid(True, alpha=0.3, axis='y')

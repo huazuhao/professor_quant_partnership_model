@@ -90,7 +90,19 @@ def add_text(
     )
 
 
-def add_box(ax, x, y, w, h, title, body="", fill="#ffffff", metric=None):
+def add_box(
+    ax,
+    x,
+    y,
+    w,
+    h,
+    title,
+    body="",
+    fill="#ffffff",
+    metric=None,
+    metric_size=20,
+    metric_body_x=None,
+):
     patch = FancyBboxPatch(
         (x, y),
         w,
@@ -103,8 +115,8 @@ def add_box(ax, x, y, w, h, title, body="", fill="#ffffff", metric=None):
     ax.add_patch(patch)
     add_text(ax, x + 0.025, y + h - 0.028, title, size=13, weight="bold")
     if metric:
-        add_text(ax, x + 0.025, y + h - 0.075, metric, size=20, weight="bold")
-        body_x = x + min(0.16, w * 0.42)
+        add_text(ax, x + 0.025, y + h - 0.075, metric, size=metric_size, weight="bold")
+        body_x = metric_body_x if metric_body_x is not None else x + min(0.16, w * 0.42)
         wrap_width = max(10, int((x + w - body_x - 0.03) * 70))
         add_text(ax, body_x, y + h - 0.072, body, size=9.8, color=COLORS["muted"], width=wrap_width)
     elif body:
@@ -133,14 +145,16 @@ def add_title_page(pdf):
         ax,
         0.08,
         0.90,
-        "A simulation of an LLM-enabled funding model for university research labs",
+        "A simulation of an LLM-enabled quant hedge fund as an alternative funding source "
+        "for university research labs.",
         size=13.5,
         color=COLORS["muted"],
+        width=78,
     )
     add_text(
         ax,
         0.08,
-        0.865,
+        0.835,
         "Repository: https://github.com/huazuhao/professor_quant_partnership_model",
         size=10.5,
         color=COLORS["muted"],
@@ -159,17 +173,17 @@ def add_title_page(pdf):
             "time than a short sabbatical or research leave could support."
         ),
         (
-            "LLM-assisted coding changes that. A 6-12 month sabbatical or one-year leave can now be "
+            "LLM-assisted coding changes that. A 6- to 12-month sabbatical can now be "
             "enough for professors to help invent or improve systematic trading strategies. If validated "
             "strategies are traded, part of the profits can fund the contributing labs over the following years."
         ),
         (
             "In the current simulation, this loop can start with $20M of initial capital and grow into a "
-            "$1B+ fund. The median 10-year investor outcome is about 3x capital, roughly 140-150 professors "
-            "or labs participate, and five-year lab compensation is above $1M at the median."
+            "$1B+ fund. The median 10-year investor outcome is about 3x capital, 120 professor/lab groups "
+            "receive funding, and five-year lab cumulative compensation is above $1M at the median."
         ),
     ]
-    y = 0.815
+    y = 0.785
     for idx, paragraph in enumerate(readme_intro):
         add_text(
             ax,
@@ -212,7 +226,7 @@ def add_funding_loop_page(pdf):
     )
 
     y = 0.52
-    add_box(ax, 0.07, y, 0.18, 0.11, "Professors", "Math, stats, optimization, simulation", COLORS["blue"])
+    add_box(ax, 0.07, y, 0.18, 0.11, "Professors", "Math, stats, optimization, simulation, etc.", COLORS["blue"])
     add_box(ax, 0.31, y, 0.18, 0.11, "LLM coding", "Faster prototypes, tests, iteration", COLORS["green"])
     add_box(ax, 0.55, y, 0.18, 0.11, "Strategies", "Invented, improved, validated", COLORS["yellow"])
     add_box(ax, 0.78, y, 0.15, 0.11, "Fund", "Trades validated systems", COLORS["violet"])
@@ -220,8 +234,8 @@ def add_funding_loop_page(pdf):
     add_arrow(ax, (0.49, y + 0.055), (0.55, y + 0.055))
     add_arrow(ax, (0.73, y + 0.055), (0.78, y + 0.055))
 
-    add_box(ax, 0.18, 0.28, 0.27, 0.12, "Lab funding", "Direct strategy-professor payouts plus safety-net support", COLORS["red"])
-    add_box(ax, 0.58, 0.28, 0.29, 0.12, "6-12 month leave", "A short sabbatical can support several years of lab funding", COLORS["blue"])
+    add_box(ax, 0.18, 0.28, 0.27, 0.12, "Lab funding", "Direct payout from fund's operational profit", COLORS["red"])
+    add_box(ax, 0.58, 0.28, 0.29, 0.12, "6- to 12-month leave", "A short sabbatical can support several years of lab funding", COLORS["blue"])
     add_arrow(ax, (0.855, y), (0.73, 0.40), rad=0.2)
     add_arrow(ax, (0.58, 0.34), (0.45, 0.34))
     add_arrow(ax, (0.18, 0.34), (0.13, y), rad=-0.25)
@@ -230,39 +244,98 @@ def add_funding_loop_page(pdf):
 
 def add_accounting_page(pdf):
     fig, ax = new_page()
-    add_text(ax, 0.08, 0.94, "Current Simulated Accounting", size=23, weight="bold")
-    add_text(ax, 0.08, 0.90, "Performance compensation is paid only after investor drawdowns are recovered.", size=12.5, color=COLORS["muted"])
-    add_box(ax, 0.15, 0.78, 0.70, 0.085, "Quarterly fund NAV", "Strategies produce net trading P&L. Losses reduce NAV first.", COLORS["blue"])
-    add_arrow(ax, (0.50, 0.775), (0.50, 0.72))
-    add_box(ax, 0.15, 0.62, 0.70, 0.085, "Management fee", "charged quarterly", COLORS["yellow"], metric="0.25%")
-    add_arrow(ax, (0.50, 0.615), (0.50, 0.56))
+    add_text(ax, 0.08, 0.94, "Realistic Hedge Fund Accounting", size=23, weight="bold")
+    add_text(
+        ax,
+        0.08,
+        0.895,
+        "The simulation models the accounting in sequence: operating fee, strategy gains or losses, "
+        "investor loss recovery, then professor/lab payouts from eligible profits.",
+        size=11.7,
+        color=COLORS["muted"],
+        width=82,
+    )
     add_box(
         ax,
         0.15,
-        0.44,
+        0.745,
+        0.70,
+        0.095,
+        "Operating fee",
+        "A small fee is charged to support fund operations.",
+        COLORS["blue"],
+        metric="0.25% per quarter",
+        metric_size=14.5,
+        metric_body_x=0.46,
+    )
+    add_arrow(ax, (0.50, 0.74), (0.50, 0.69))
+    add_box(
+        ax,
+        0.15,
+        0.575,
         0.70,
         0.105,
-        "Investor high-water mark test",
-        "Investor cohorts must recover prior drawdowns. No performance allocation is paid below net HWM.",
+        "Strategy gains or losses",
+        "Trading results are applied to the fund immediately: gains increase it, and losses reduce it.",
+        COLORS["yellow"],
+    )
+    add_arrow(ax, (0.50, 0.57), (0.50, 0.53))
+    add_box(
+        ax,
+        0.15,
+        0.410,
+        0.70,
+        0.105,
+        "Investor recovery check",
+        "If prior investor losses remain, gains first repair those losses.",
         COLORS["green"],
     )
-    add_arrow(ax, (0.50, 0.435), (0.50, 0.38))
+    add_arrow(ax, (0.50, 0.405), (0.50, 0.365))
     add_box(
         ax,
         0.21,
-        0.28,
+        0.250,
         0.58,
         0.10,
-        "Performance pool",
-        "above-HWM profits at crystallization",
+        "Professor/lab payout pool",
+        "A share of profits.",
         COLORS["violet"],
         metric="20%",
     )
-    add_arrow(ax, (0.50, 0.275), (0.28, 0.20), rad=-0.12)
-    add_arrow(ax, (0.50, 0.275), (0.72, 0.20), rad=0.12)
-    add_box(ax, 0.08, 0.075, 0.36, 0.125, "Strategy professors", "Strategy ownership payments", COLORS["blue"], metric="50%")
-    add_box(ax, 0.56, 0.075, 0.36, 0.125, "Safety net", "Up to $1M cumulative support", COLORS["red"], metric="50%")
-    add_text(ax, 0.08, 0.045, "Eligible profits after HWM: 80% fund/investors, 10% strategy professors, 10% safety net.", size=10.5, color=COLORS["muted"])
+    add_arrow(ax, (0.50, 0.245), (0.28, 0.185), rad=-0.12)
+    add_arrow(ax, (0.50, 0.245), (0.72, 0.185), rad=0.12)
+    add_box(
+        ax,
+        0.08,
+        0.06,
+        0.36,
+        0.125,
+        "Performance payout",
+        "For strategy results",
+        COLORS["blue"],
+        metric="50%",
+    )
+    add_box(
+        ax,
+        0.56,
+        0.06,
+        0.36,
+        0.125,
+        "$1M safety net",
+        "For baseline support",
+        COLORS["red"],
+        metric="50%",
+    )
+    add_text(
+        ax,
+        0.08,
+        0.032,
+        "Professor/lab payouts are split into two parts: half rewards direct strategy performance, "
+        "and half funds the safety net for eligible contributors below the $1M lifetime threshold.",
+        size=9.5,
+        color=COLORS["muted"],
+        width=96,
+    )
     save_page(pdf, fig)
 
 
@@ -271,14 +344,13 @@ def add_results_page(pdf):
     add_text(ax, 0.08, 0.94, "Current Simulation Results", size=23, weight="bold")
     add_text(ax, 0.08, 0.90, "Baseline batch run: 100 paths, 40 quarters, seed 42.", size=12.5, color=COLORS["muted"])
     rows = [
-        ("Initial capital", "$20M"),
-        ("Final fund AUM after 10 years", "about $1.27B median"),
-        ("10-year investor outcome", "about 3x capital"),
-        ("Professors/labs after 10 years", "138.5 median"),
-        ("Five-year professor/lab compensation", "$1.34M median"),
-        ("Five-year compensation, p75", "$1.63M"),
-        ("Five-year compensation, p90", "$2.00M"),
-        ("$100 reference investment ending value", "$302.52 median"),
+        ("Initial fund capital", "$20 million"),
+        ("Final fund size after 10 years", "$1.27 billion median"),
+        ("Median 10-year investor value", "$100 grows to $302.52"),
+        ("Professor/lab groups receiving funding after 10 years", "120 median"),
+        ("Five-year cumulative professor/lab compensation", "$1.34 million median"),
+        ("Five-year cumulative compensation, p75", "$1.63 million"),
+        ("Five-year cumulative compensation, p90", "$2.00 million"),
     ]
     x0, y0, w, row_h = 0.08, 0.80, 0.84, 0.072
     left_w = 0.54
@@ -329,8 +401,7 @@ def main():
         add_chart_page(pdf, "batch_plot1_investment_value_distribution.png", "Chart 1: Investor Outcome Distribution")
         add_chart_page(pdf, "batch_plot2_5year_compensation_distribution.png", "Chart 2: Five-Year Professor/Lab Compensation")
         add_chart_page(pdf, "batch_plot3_final_aum_distribution.png", "Chart 3: Final Fund AUM")
-        add_chart_page(pdf, "batch_plot4_total_author_count_distribution.png", "Chart 4: Total Professors/Labs")
-        add_chart_page(pdf, "batch_plot5_paid_author_count_distribution.png", "Chart 5: Paid Professors/Labs")
+        add_chart_page(pdf, "batch_plot5_paid_author_count_distribution.png", "Chart 4: Professor/Lab Groups Receiving Funding")
     print(f"Wrote {OUTPUT_PATH.resolve()}")
 
 
