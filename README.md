@@ -4,9 +4,9 @@ This repository studies a new research-lab funding model made possible by the ra
 
 University labs in mathematics, statistics, optimization, simulation, computational modeling, and related STEM fields already have the talent systematic hedge funds rely on. The old bottleneck was implementation: turning a research idea into clean data, backtests, diagnostics, risk controls, deployment code, and monitoring usually took more engineering time than a short sabbatical or research leave could support.
 
-LLM-assisted coding changes that. A 6-12 month sabbatical or one-year leave can now be enough for professors to help invent or improve systematic trading strategies. If validated strategies are traded, part of the profits can fund the contributing labs over the following years.
+LLM-assisted coding changes that. A 6- to 12-month sabbatical can now be enough for professors to help invent or improve systematic trading strategies. If validated strategies are traded, part of the profits can fund the contributing labs over the following years.
 
-In the current simulation, this loop can start with $20M of initial capital and grow into a $1B+ fund. The median 10-year investor outcome is about 3x capital, roughly 140-150 professors or labs participate, and five-year lab compensation is above $1M at the median.
+In the current simulation, this loop can start with $20M of initial capital and grow into a $1B+ fund. The median 10-year investor outcome is about 3x capital, 120 professor/lab groups receive funding, and five-year lab cumulative compensation is above $1M at the median.
 
 ![Professor-led quant research funding loop](assets/funding_loop.svg)
 
@@ -15,26 +15,26 @@ In the current simulation, this loop can start with $20M of initial capital and 
 ## The One-Minute Version
 
 - Professors contribute the core research hedge funds need: math, statistics, optimization, modeling, simulation, and rigorous empirical testing.
-- LLM coding makes it realistic to turn those ideas into testable trading systems during a sabbatical or 6-12 month leave.
+- LLM coding makes it realistic to turn those ideas into testable trading systems during a 6- to 12-month sabbatical.
 - The fund provides capital, data, execution infrastructure, monitoring, and continuity.
-- Successful strategies generate profits above investor high-water marks.
-- A share of those profits funds research labs through direct strategy-owner payouts and a safety-net pool.
+- Strategy gains or losses are applied to the fund immediately.
+- Professor/lab payouts are made from eligible profits after investor loss recovery.
+- Professor/lab payouts are split between performance-based rewards and a safety-net pool.
 - The simulation suggests this could become a large, repeatable alternative funding model for university labs, with successful contributors receiving more than $1M in cumulative support over the following years.
 
 ## Current Simulated Economics
 
-The model is intentionally fund-accounting aware. It does not pay performance allocation merely because a strategy has a good quarter. Investors must first recover drawdowns through net high-water-mark accounting.
-
-![Current simulated fee and payout accounting](assets/profit_split.svg)
+The simulation models the accounting in sequence: operating fee, strategy gains or losses, investor loss recovery, then professor/lab payouts from eligible profits.
 
 Current baseline assumptions:
 
-- Initial fund AUM: `$20M`
-- Management fee: `0.25%` per quarter
-- Performance allocation: `20%` of eligible profits above investor high-water marks
-- Crystallization: annually, with interim crystallization on withdrawals
-- Direct strategy-owner payout: `50%` of the performance pool
-- Safety-net payout: `50%` of the performance pool
+- Initial fund capital: `$20 million`
+- Operating fee: `0.25% per quarter`
+- Strategy gains or losses: applied to the fund immediately
+- Investor recovery check: prior investor losses are repaired before professor/lab payouts
+- Professor/lab payout pool: `20%` share of profits
+- Performance payout: `50%` of the professor/lab payout pool
+- Safety-net payout: `50%` of the professor/lab payout pool
 - Safety-net guarantee: up to `$1M` cumulative support per eligible professor/lab
 - Active professor research target: about one active strategy professor per `$45M` of AUM
 - New strategy birth capacity: `$10M-$50M`
@@ -46,12 +46,13 @@ The current baseline batch run uses `100` paths, `40` quarters, and seed `42`.
 
 | Metric | Median / Current Baseline Result |
 | --- | ---: |
-| Final fund AUM after 10 years | about `$1.27B` |
-| Professors/labs after 10 years | `138.5` median |
-| Five-year professor/lab compensation | `$1.34M` median |
-| Five-year professor/lab compensation, p75 | `$1.63M` |
-| Five-year professor/lab compensation, p90 | `$2.00M` |
-| `$100` reference investment ending value | `$302.52` median |
+| Initial fund capital | `$20 million` |
+| Final fund size after 10 years | `$1.27 billion` median |
+| Median 10-year investor value | `$100` grows to `$302.52` |
+| Professor/lab groups receiving funding after 10 years | `120` median |
+| Five-year cumulative professor/lab compensation | `$1.34 million` median |
+| Five-year cumulative compensation, p75 | `$1.63 million` |
+| Five-year cumulative compensation, p90 | `$2.00 million` |
 
 These are simulation outputs, not forecasts. The purpose is to test whether the economic loop is internally coherent and whether the scale of the research-funding impact is large enough to justify deeper investigation.
 
@@ -61,9 +62,9 @@ These are simulation outputs, not forecasts. The purpose is to test whether the 
 | --- | --- |
 | ![Investment value distribution](batch_plot1_investment_value_distribution.png) | ![Five-year compensation distribution](batch_plot2_5year_compensation_distribution.png) |
 
-| Final AUM | Total professors/labs | Paid professors/labs |
-| --- | --- | --- |
-| ![Final AUM distribution](batch_plot3_final_aum_distribution.png) | ![Total professor/lab count distribution](batch_plot4_total_author_count_distribution.png) | ![Paid professor/lab count distribution](batch_plot5_paid_author_count_distribution.png) |
+| Final fund size | Professor/lab groups receiving funding |
+| --- | --- |
+| ![Final fund size distribution](batch_plot3_final_aum_distribution.png) | ![Professor/lab groups receiving funding distribution](batch_plot5_paid_author_count_distribution.png) |
 
 ## What The Model Simulates
 
@@ -72,7 +73,7 @@ The simulation is built from several interacting components:
 - `strategy_lifecycle`: strategy invention, decay, capacity limits, and capacity improvements
 - `author_collaboration`: professor research cycles, strategy invention, strategy improvement, and ownership assignment
 - `capital_allocation`: capital deployment across available strategies
-- `performance_allocation`: management fees, investor high-water marks, annual crystallization, withdrawal crystallization, professor/lab payouts, and safety-net payouts
+- `performance_allocation`: operating fees, investor loss recovery, professor/lab payouts, and safety-net payouts
 - `investor_flow`: subscriptions, withdrawals, AUM growth limits, and capacity-aware inflow acceptance
 - `external_shock`: crisis events and market stress
 
