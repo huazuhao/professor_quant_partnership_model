@@ -12,6 +12,8 @@ In the current simulation, this loop can start with $20M of initial capital and 
 
 [Download the PDF overview](professor_quant_partnership_model_overview.pdf)
 
+[Download the university partnership structure memo](university_partnership_structure_memo.pdf)
+
 ## The One-Minute Version
 
 - Professors contribute the core research hedge funds need: math, statistics, optimization, modeling, simulation, and rigorous empirical testing.
@@ -88,6 +90,12 @@ It also separates two professor-contributor concepts:
 - active sabbatical professors: currently available to invent or improve strategies
 - safety-net professor contributors: cumulative contributors who may still be eligible for compensation
 
+## Partnership Structure Memo
+
+The overview PDF is intentionally short and focuses on the simulation loop. The companion structure memo explains the partnership structure in practical terms: capital participation, faculty collaboration, strategy attribution, distribution policy, the concrete pilot design, and the main questions universities and faculty usually ask.
+
+See `UNIVERSITY_PARTNERSHIP_STRUCTURE_MEMO.md` and `university_partnership_structure_memo.pdf`.
+
 ## Run The Simulation
 
 Set up the environment:
@@ -121,6 +129,7 @@ venv/bin/python -m unittest discover -s tests
 .
 |-- README.md
 |-- UNIVERSITY_PARTNERSHIP_PROPOSAL.md
+|-- UNIVERSITY_PARTNERSHIP_STRUCTURE_MEMO.md
 |-- run_single_simulation.py
 |-- run_batch_simulation.py
 |-- components/

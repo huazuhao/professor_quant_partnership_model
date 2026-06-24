@@ -8,6 +8,8 @@ This partnership offers a new path. During sabbaticals or dedicated research per
 
 By combining faculty insight with platform support and LLM acceleration, this initiative creates a reliable, scalable funding channel for academic research. Professors contribute directly to strategy design and refinement, and when those strategies succeed, a share of the resulting profits is routed—under transparent university policies—to their research labs or project accounts.
 
+This proposal should be read together with `UNIVERSITY_PARTNERSHIP_STRUCTURE_MEMO.md`, which lays out the practical structure in more detail: capital participation, faculty collaboration, attribution, distribution policy, concrete pilot design, and common questions about the model.
+
 ## Why This Moment Is Different
 
 Quantitative strategy development requires two skills: rigorous mathematical research and engineering that turns ideas into robust, testable systems. The first requirement remains essential. What has changed is the time and effort required for the second.
